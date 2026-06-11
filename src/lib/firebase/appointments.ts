@@ -27,6 +27,55 @@ export async function cancelAppointment(id: string) {
   await updateDoc(doc(db, "appointments", id), { status: "cancelled" })
 }
 
+export async function rescheduleAppointment(id: string, newDate: Date) {
+  await updateDoc(doc(db, "appointments", id), { date: Timestamp.fromDate(newDate) })
+}
+
+export async function updateAppointmentNote(id: string, note: string) {
+  await updateDoc(doc(db, "appointments", id), { note })
+}
+
+export interface WeekAppointment {
+  id: string
+  clientName: string
+  treatment: string
+  category: string
+  date: Date
+  duration: number
+  status: string
+  note: string
+}
+
+/** Subskrybuje wizyty z zakresu dat — dla terminarza pracownika. */
+export function subscribeRangeAppointments(
+  start: Date,
+  end: Date,
+  callback: (appointments: WeekAppointment[]) => void
+) {
+  const q = query(
+    collection(db, "appointments"),
+    where("date", ">=", Timestamp.fromDate(start)),
+    where("date", "<=", Timestamp.fromDate(end))
+  )
+  return onSnapshot(q, (snap) => {
+    callback(
+      snap.docs.map((d) => {
+        const data = d.data()
+        return {
+          id: d.id,
+          clientName: data.clientName,
+          treatment: data.treatment,
+          category: data.category,
+          date: (data.date as Timestamp).toDate(),
+          duration: data.duration ?? 1,
+          status: data.status,
+          note: data.note ?? "",
+        }
+      })
+    )
+  })
+}
+
 /** Subskrybuje wizyty z danego dnia — do blokowania zajętych godzin. */
 export function subscribeDayAppointments(
   day: Date,

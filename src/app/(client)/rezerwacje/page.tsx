@@ -340,30 +340,36 @@ export default function RezerwacjePage() {
       )}
 
       {/* Pasek podsumowania */}
-      {treatment && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/90 backdrop-blur-xl">
-          <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-            <div className="min-w-0">
-              <div className="truncate font-semibold">{treatment.name}</div>
-              <div className="truncate text-sm capitalize text-muted-foreground">
-                {day ? fullDate(day) : "wybierz dzień"}
-                {hour !== null && `, ${hour}:00`}
-                {" · "}
-                <span className="font-semibold text-primary">{treatment.price}</span>
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 md:px-6">
+          <div className="min-w-0">
+            {treatment ? (
+              <>
+                <div className="truncate font-semibold">{treatment.name}</div>
+                <div className="truncate text-sm capitalize text-muted-foreground">
+                  {day ? fullDate(day) : "wybierz dzień"}
+                  {day && (hour !== null ? `, ${hour}:00` : ", wybierz godzinę")}
+                  {" · "}
+                  <span className="font-semibold text-primary">{treatment.price}</span>
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground">
+                Wybierz zabieg, dzień i godzinę, aby zarezerwować wizytę.
               </div>
-            </div>
-            <Button
-              size="lg"
-              className="shrink-0 text-base font-semibold"
-              disabled={!canBook}
-              onClick={handleBook}
-            >
-              <IconSparkles size={18} />
-              {saving ? "Rezerwuję..." : "Rezerwuję"}
-            </Button>
+            )}
           </div>
+          <Button
+            size="lg"
+            className="shrink-0 text-base font-semibold"
+            disabled={!canBook}
+            onClick={handleBook}
+          >
+            <IconSparkles size={18} />
+            {saving ? "Rezerwuję..." : "Zarezerwuj"}
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   )
 }
