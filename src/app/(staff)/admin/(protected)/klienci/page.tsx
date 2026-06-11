@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
+import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch } from "@tabler/icons-react"
 import {
   Table,
   TableBody,
@@ -14,72 +13,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
-const CLIENTS = [
-  {
-    name: "Anna",
-    surname: "Kowalska",
-    email: "anna.kowalska@gmail.com",
-    phone: "601 234 567",
-    subscription: true,
-    lastVisit: "2026-05-28",
-    nextVisit: "2026-06-18",
-  },
-  {
-    name: "Marta",
-    surname: "Wiśniewska",
-    email: "marta.w@gmail.com",
-    phone: "512 345 678",
-    subscription: false,
-    lastVisit: "2026-06-01",
-    nextVisit: "2026-06-20",
-  },
-  {
-    name: "Karolina",
-    surname: "Nowak",
-    email: "karolina.nowak@wp.pl",
-    phone: "698 456 789",
-    subscription: true,
-    lastVisit: "2026-06-05",
-    nextVisit: "2026-06-25",
-  },
-  {
-    name: "Joanna",
-    surname: "Zielińska",
-    email: "joanna.z@onet.pl",
-    phone: "724 567 890",
-    subscription: true,
-    lastVisit: "2026-05-20",
-    nextVisit: "2026-07-01",
-  },
-  {
-    name: "Paulina",
-    surname: "Wójcik",
-    email: "paulina.wojcik@gmail.com",
-    phone: "531 678 901",
-    subscription: false,
-    lastVisit: "2026-05-15",
-    nextVisit: null,
-  },
-  {
-    name: "Ewa",
-    surname: "Kaczmarek",
-    email: "ewa.k@interia.pl",
-    phone: "603 789 012",
-    subscription: false,
-    lastVisit: "2026-06-08",
-    nextVisit: "2026-06-22",
-  },
-  {
-    name: "Agnieszka",
-    surname: "Lewandowska",
-    email: "agnieszka.l@gmail.com",
-    phone: "789 012 345",
-    subscription: true,
-    lastVisit: "2026-06-10",
-    nextVisit: "2026-06-30",
-  },
-]
+import { useClients } from "@/lib/hooks/useClients"
+import { deleteClient, type Client } from "@/lib/firebase/clients"
+import { ClientDialog } from "@/components/admin/ClientDialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 function formatDate(date: string | null) {
   if (!date) return <span className="text-muted-foreground">—</span>
@@ -87,9 +33,12 @@ function formatDate(date: string | null) {
 }
 
 export default function KlienciPage() {
-  const router = useRouter()
-  const [clients, setClients] = useState(CLIENTS)
+  const { clients, loading } = useClients()
   const [query, setQuery] = useState("")
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editClient, setEditClient] = useState<Client | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleteName, setDeleteName] = useState("")
   const dragIndex = useRef<number | null>(null)
 
   const filtered = query.trim().length < 3
@@ -104,23 +53,10 @@ export default function KlienciPage() {
         )
       })
 
-  const handleDragStart = (index: number) => {
-    dragIndex.current = index
-  }
-
-  const handleDrop = (dropIndex: number) => {
-    const from = dragIndex.current
-    if (from === null || from === dropIndex) return
-    const updated = [...clients]
-    const [moved] = updated.splice(from, 1)
-    updated.splice(dropIndex, 0, moved)
-    setClients(updated)
-    dragIndex.current = null
-  }
-
-  const handleDelete = (email: string) => {
-    setClients((prev) => prev.filter((c) => c.email !== email))
-  }
+  const openAdd = () => { setEditClient(null); setDialogOpen(true) }
+  const openEdit = (client: Client) => { setEditClient(client); setDialogOpen(true) }
+  const confirmDelete = (client: Client) => { setDeleteId(client.id); setDeleteName(`${client.name} ${client.surname}`) }
+  const handleDelete = () => { if (deleteId) deleteClient(deleteId); setDeleteId(null) }
 
   return (
     <div className="flex flex-col gap-6">
@@ -136,7 +72,7 @@ export default function KlienciPage() {
               className="pl-9 w-80"
             />
           </div>
-          <Button size="lg" className="text-base font-semibold px-6" onClick={() => router.push("/admin/klienci/dodaj")}>
+          <Button size="lg" className="text-base font-semibold px-6" onClick={openAdd}>
             <IconUserPlus size={20} />
             Dodaj klienta
           </Button>
@@ -159,14 +95,27 @@ export default function KlienciPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
+            {loading && (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                  Ładowanie...
+                </TableCell>
+              </TableRow>
+            )}
+            {!loading && filtered.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                  Brak klientów
+                </TableCell>
+              </TableRow>
+            )}
             {filtered.map((client, i) => (
               <TableRow
-                key={client.email}
+                key={client.id}
                 draggable
-                onDragStart={() => handleDragStart(i)}
+                onDragStart={() => { dragIndex.current = i }}
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={() => handleDrop(i)}
-                className={`transition-colors ${dragIndex.current === i ? "opacity-40" : ""} ${i % 2 === 0 ? "" : "bg-muted/30"}`}
+                className={i % 2 === 0 ? "" : "bg-muted/30"}
               >
                 <TableCell className="text-muted-foreground cursor-grab active:cursor-grabbing">
                   <IconGripVertical size={16} />
@@ -185,14 +134,14 @@ export default function KlienciPage() {
                 <TableCell>{formatDate(client.nextVisit)}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" className="size-8">
+                    <Button size="icon" variant="ghost" className="size-8" onClick={() => openEdit(client)}>
                       <IconPencil size={15} />
                     </Button>
                     <Button
                       size="icon"
                       variant="ghost"
                       className="size-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(client.email)}
+                      onClick={() => confirmDelete(client)}
                     >
                       <IconTrash size={15} />
                     </Button>
@@ -203,6 +152,32 @@ export default function KlienciPage() {
           </TableBody>
         </Table>
       </div>
+
+      <ClientDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        client={editClient}
+      />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Usunąć klienta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Czy na pewno chcesz usunąć <strong>{deleteName}</strong>? Tej operacji nie można cofnąć.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anuluj</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDelete}
+            >
+              Usuń
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

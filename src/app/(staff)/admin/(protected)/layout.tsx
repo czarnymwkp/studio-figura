@@ -25,7 +25,7 @@ export default function AdminProtectedLayout({ children }: { children: React.Rea
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col p-6">
+        <div className="flex flex-1 flex-col p-6 [&>*]:flex-1">
           {children}
         </div>
       </SidebarInset>

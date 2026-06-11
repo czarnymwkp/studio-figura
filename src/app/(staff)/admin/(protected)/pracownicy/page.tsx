@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { IconUserPlus } from "@tabler/icons-react"
 import { EmployeeCard } from "@/components/admin/EmployeeCard"
@@ -12,6 +13,7 @@ const INITIAL_EMPLOYEES = [
 ]
 
 export default function PracownicyPage() {
+  const router = useRouter()
   const [employees, setEmployees] = useState(INITIAL_EMPLOYEES)
   const dragIndex = useRef<number | null>(null)
 
@@ -34,7 +36,7 @@ export default function PracownicyPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Pracownicy</h1>
-        <Button size="lg" className="text-base font-semibold px-6">
+        <Button size="lg" className="text-base font-semibold px-6" onClick={() => router.push("/admin/pracownicy/dodaj")}>
           <IconUserPlus size={20} />
           Dodaj pracownika
         </Button>
