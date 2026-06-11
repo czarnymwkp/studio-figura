@@ -49,10 +49,10 @@ export function NavMain({
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>
-        <SidebarMenu>
+        <SidebarMenu className="gap-1">
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
+              <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url} className="h-11 text-base font-medium">
                 <Link href={item.url}>
                   {item.icon}
                   <span>{item.title}</span>

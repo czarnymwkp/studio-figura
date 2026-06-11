@@ -16,6 +16,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { IconLayoutDashboard, IconUsersGroup, IconUserCheck, IconTool, IconTag, IconCamera, IconFileDescription, IconFileAi, IconSettings, IconHelp, IconSearch, IconContract, IconReport, IconSpeakerphone } from "@tabler/icons-react"
 
@@ -160,6 +161,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <SidebarSeparator className="mx-4 my-1 opacity-30" />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
