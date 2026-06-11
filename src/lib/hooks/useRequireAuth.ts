@@ -19,7 +19,7 @@ const useRequireAuth = (allowedRoles: UserRole[]) => {
             switch(profile.role){
                 case 'admin':
                 case 'employee':
-                    router.push('/admin')
+                    router.push('/admin/dashboard')
                     break;
                 case 'client':
                     router.push('/dashboard')
@@ -33,3 +33,5 @@ const useRequireAuth = (allowedRoles: UserRole[]) => {
 
     return { profile, loading, role }
 }
+
+export default useRequireAuth;

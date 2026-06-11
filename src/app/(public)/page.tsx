@@ -10,7 +10,7 @@ export default function HomePage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.replace("/dashboard");
+        router.replace("/admin/dashboard");
       } else {
         router.replace("/login");
       }
