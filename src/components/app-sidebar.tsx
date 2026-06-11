@@ -17,49 +17,39 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { IconDashboard, IconListDetails, IconChartBar, IconFolder, IconUsers, IconCamera, IconFileDescription, IconFileAi, IconSettings, IconHelp, IconSearch, IconDatabase, IconReport, IconFileWord, IconInnerShadowTop } from "@tabler/icons-react"
+import { IconLayoutDashboard, IconUsersGroup, IconUserCheck, IconTool, IconTag, IconCamera, IconFileDescription, IconFileAi, IconSettings, IconHelp, IconSearch, IconContract, IconReport, IconSpeakerphone } from "@tabler/icons-react"
 
 const data = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "#",
-      icon: (
-        <IconDashboard
-        />
-      ),
+      title: "Przegląd",
+      url: "/admin/dashboard",
+      icon: <IconLayoutDashboard size={22} className="text-primary" />,
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: (
-        <IconListDetails
-        />
-      ),
+      title: "Klienci",
+      url: "/admin/klienci",
+      icon: <IconUsersGroup size={22} className="text-primary" />,
     },
     {
-      title: "Analytics",
-      url: "#",
-      icon: (
-        <IconChartBar
-        />
-      ),
+      title: "Pracownicy",
+      url: "/admin/pracownicy",
+      icon: <IconUserCheck size={22} className="text-primary" />,
     },
     {
-      title: "Projects",
-      url: "#",
-      icon: (
-        <IconFolder
-        />
-      ),
+      title: "Urządzenia",
+      url: "/admin/urzadzenia",
+      icon: <IconTool size={22} className="text-primary" />,
     },
     {
-      title: "Team",
-      url: "#",
-      icon: (
-        <IconUsers
-        />
-      ),
+      title: "Promocje",
+      url: "/admin/promocje",
+      icon: <IconSpeakerphone size={22} className="text-primary" />,
+    },
+    {
+      title: "Cennik",
+      url: "/admin/cennik",
+      icon: <IconTag size={22} className="text-primary" />,
     },
   ],
   navClouds: [
@@ -121,54 +111,31 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Settings",
+      title: "Ustawienia",
       url: "#",
-      icon: (
-        <IconSettings
-        />
-      ),
+      icon: <IconSettings size={22} className="text-primary" />,
     },
     {
-      title: "Get Help",
+      title: "Pomoc",
       url: "#",
-      icon: (
-        <IconHelp
-        />
-      ),
+      icon: <IconHelp size={22} className="text-primary" />,
     },
     {
-      title: "Search",
+      title: "Wyszukaj",
       url: "#",
-      icon: (
-        <IconSearch
-        />
-      ),
+      icon: <IconSearch size={22} className="text-primary" />,
     },
   ],
   documents: [
     {
-      name: "Data Library",
+      name: "Umowy z klientami",
       url: "#",
-      icon: (
-        <IconDatabase
-        />
-      ),
+      icon: <IconContract size={22} className="text-primary" />,
     },
     {
-      name: "Reports",
+      name: "Raporty",
       url: "#",
-      icon: (
-        <IconReport
-        />
-      ),
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: (
-        <IconFileWord
-        />
-      ),
+      icon: <IconReport size={22} className="text-primary" />,
     },
   ],
 }
@@ -181,10 +148,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
+              className="h-auto py-2 data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <a href="#">
-                <Image src="/img/logo.png" alt="Studio Figura" width={32} height={32} />
+                <Image src="/img/logo.png" alt="Studio Figura" width={48} height={48} className="shrink-0" />
                 <span className="text-base font-semibold">Studio Figura</span>
               </a>
             </SidebarMenuButton>

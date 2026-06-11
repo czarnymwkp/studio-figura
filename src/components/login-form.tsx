@@ -1,69 +1,70 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { FirebaseError } from "firebase/app";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Image from "next/image";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { FirebaseError } from "firebase/app"
+import { signInWithEmailAndPassword } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import Image from "next/image"
 
-import { cn } from "@/lib/utils";
-import { auth, db } from "@/lib/firebase/config";
-import { UserProfile } from "@/types";
-import loginSchema, { LoginFormValues } from "@/lib/validations/auth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils"
+import { auth, db } from "@/lib/firebase/config"
+import { UserProfile } from "@/types"
+import loginSchema, { LoginFormValues } from "@/lib/validations/auth"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
-const LoginForm = ({ className, ...props }: React.ComponentProps<"div">) => {
-  const router = useRouter();
-  const [firebaseError, setFirebaseError] = useState("");
+export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+  const router = useRouter()
+  const [firebaseError, setFirebaseError] = useState("")
 
   const { register, handleSubmit, formState: { errors, isDirty, isValid, isSubmitting } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
     mode: "onChange",
-  });
+  })
 
   const onSubmit = async (data: LoginFormValues) => {
-    setFirebaseError("");
+    setFirebaseError("")
     try {
-      const credentials = await signInWithEmailAndPassword(auth, data.email, data.password);
-      const userDoc = await getDoc(doc(db, "users", credentials.user.uid));
+      const credentials = await signInWithEmailAndPassword(auth, data.email, data.password)
+      const userDoc = await getDoc(doc(db, "users", credentials.user.uid))
 
       if (!userDoc.exists()) {
-        setFirebaseError("Brak profilu. Skontaktuj się z administratorem.");
-        await auth.signOut();
-        return;
+        setFirebaseError("Brak profilu. Skontaktuj się z administratorem.")
+        await auth.signOut()
+        return
       }
 
-      const profile = userDoc.data() as UserProfile;
+      const profile = userDoc.data() as UserProfile
 
-      if (profile.role !== "admin" && profile.role !== "employee") {
-        setFirebaseError("Brak uprawnień do zalogowania.");
-        await auth.signOut();
-        return;
+      if (profile.role === "client") {
+        router.push("/dashboard")
+      } else if (profile.role === "admin" || profile.role === "employee") {
+        router.push("/admin/dashboard")
+      } else {
+        setFirebaseError("Brak uprawnień.")
+        await auth.signOut()
       }
-
-      router.push("/admin/dashboard");
     } catch (error) {
       if (error instanceof FirebaseError) {
         switch (error.code) {
           case "auth/invalid-credential":
-            setFirebaseError("Nieprawidłowy email lub hasło.");
-            break;
+            setFirebaseError("Nieprawidłowy email lub hasło.")
+            break
           case "auth/too-many-requests":
-            setFirebaseError("Zbyt wiele prób. Spróbuj później.");
-            break;
+            setFirebaseError("Zbyt wiele prób. Spróbuj później.")
+            break
           default:
-            setFirebaseError("Wystąpił błąd. Spróbuj ponownie.");
+            setFirebaseError("Wystąpił błąd. Spróbuj ponownie.")
         }
       }
     }
-  };
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -75,7 +76,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"div">) => {
                 <Image src="/img/logo.png" alt="Studio Figura" width={64} height={64} />
                 <h1 className="text-2xl font-bold">Studio Figura</h1>
                 <p className="text-balance text-sm text-muted-foreground">
-                  Panel administracyjny
+                  Zaloguj się do swojego konta
                 </p>
               </div>
               <div className="flex flex-col gap-4">
@@ -96,18 +97,25 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"div">) => {
               </div>
             </div>
           </form>
-          <div className="relative hidden bg-muted md:block">
+          <div className="relative hidden overflow-hidden bg-muted md:block">
             <Image
-              src="/img/logo.png"
+              src="/img/studio-figura-login.jpg"
               alt="Studio Figura"
               fill
-              className="object-contain p-8"
+              className="object-cover animate-kenburns"
             />
+            <div className="absolute bottom-4 right-4">
+              <Image
+                src="/img/logo.png"
+                alt="Logo"
+                width={64}
+                height={64}
+                className="rounded-lg"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
-};
-
-export default LoginForm;
+  )
+}

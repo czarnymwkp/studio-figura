@@ -20,7 +20,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { IconDotsVertical, IconLogout, IconUserCircle, IconCreditCard, IconNotification } from "@tabler/icons-react"
+import { IconDotsVertical, IconLogout, IconUserCircle } from "@tabler/icons-react"
 import Image from "next/image"
 import useAuthState from "@/lib/hooks/useAuthState"
 import { logout } from "@/lib/firebase/auth"
@@ -77,17 +77,9 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/admin/konto")}>
                 <IconUserCircle />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
+                Konto
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
