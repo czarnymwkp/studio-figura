@@ -1,36 +1,26 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { IconUserPlus } from "@tabler/icons-react"
+import { IconUserPlus, IconUsers } from "@tabler/icons-react"
 import { EmployeeCard } from "@/components/admin/EmployeeCard"
-
-const INITIAL_EMPLOYEES = [
-  { id: 1, name: "Anna Kowalska", position: "Kosmetolog", image: "/img/logo.png" },
-  { id: 2, name: "Marta Nowak", position: "Specjalista modelowania sylwetki", image: "/img/logo.png" },
-  { id: 3, name: "Karolina Wiśniewska", position: "Laser & Depilacja", image: "/img/logo.png" },
-]
+import { SkillsDialog } from "@/components/admin/SkillsDialog"
+import { subscribeEmployees, type Employee } from "@/lib/firebase/schedule"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function PracownicyPage() {
   const router = useRouter()
-  const [employees, setEmployees] = useState(INITIAL_EMPLOYEES)
-  const dragIndex = useRef<number | null>(null)
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [loading, setLoading] = useState(true)
+  const [skillsTarget, setSkillsTarget] = useState<Employee | null>(null)
 
-  const handleDragStart = (index: number) => {
-    dragIndex.current = index
-  }
-
-  const handleDrop = (dropIndex: number) => {
-    const from = dragIndex.current
-    if (from === null || from === dropIndex) return
-
-    const updated = [...employees]
-    const [moved] = updated.splice(from, 1)
-    updated.splice(dropIndex, 0, moved)
-    setEmployees(updated)
-    dragIndex.current = null
-  }
+  useEffect(() => {
+    return subscribeEmployees((data) => {
+      setEmployees(data)
+      setLoading(false)
+    })
+  }, [])
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,17 +31,36 @@ export default function PracownicyPage() {
           Dodaj pracownika
         </Button>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-        {employees.map((emp, index) => (
-          <EmployeeCard
-            key={emp.id}
-            {...emp}
-            dragging={dragIndex.current === index}
-            onDragStart={() => handleDragStart(index)}
-            onDrop={() => handleDrop(index)}
-          />
-        ))}
-      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+          <Skeleton className="aspect-[3/4] rounded-2xl" />
+          <Skeleton className="aspect-[3/4] rounded-2xl" />
+          <Skeleton className="aspect-[3/4] rounded-2xl" />
+        </div>
+      ) : employees.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border p-12 text-center">
+          <IconUsers size={32} className="text-muted-foreground" />
+          <p className="font-semibold">Brak pracowników</p>
+          <p className="text-sm text-muted-foreground">
+            Dodaj pierwszego pracownika przyciskiem powyżej.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+          {employees.map((emp) => (
+            <EmployeeCard
+              key={emp.uid}
+              name={`${emp.name} ${emp.surname}`}
+              position={emp.position}
+              skillsCount={emp.skills.length}
+              onClick={() => setSkillsTarget(emp)}
+            />
+          ))}
+        </div>
+      )}
+
+      <SkillsDialog employee={skillsTarget} onClose={() => setSkillsTarget(null)} />
     </div>
   )
 }

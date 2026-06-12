@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import {
   IconCalendarHeart, IconClock, IconSparkles,
-  IconStar, IconArrowRight, IconGift,
+  IconStar, IconArrowRight, IconGift, IconHistory, IconRepeat,
 } from "@tabler/icons-react"
 
 import useAuthState from "@/lib/hooks/useAuthState"
@@ -35,7 +35,7 @@ function formatDuration(hours: number) {
 
 export default function ClientDashboardPage() {
   const { profile } = useAuthState()
-  const { points, upcoming, promotions, loading } = useClientPortal()
+  const { points, upcoming, history, promotions, loading } = useClientPortal()
 
   const firstName = profile?.displayName?.split(" ")[0]
   const nextVisit = upcoming[0]
@@ -101,6 +101,27 @@ export default function ClientDashboardPage() {
                   <span>{formatDuration(nextVisit.duration)}</span>
                   <span className="font-semibold text-foreground">{nextVisit.price} zł</span>
                 </div>
+
+                {upcoming.length > 1 && (
+                  <div className="mt-3 flex flex-col gap-2 border-t border-border/60 pt-3">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">Kolejne wizyty</p>
+                    {upcoming.slice(1, 4).map((visit) => (
+                      <div key={visit.id} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="truncate font-medium">{visit.treatment}</span>
+                        <span className="shrink-0 capitalize text-muted-foreground">
+                          {new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "short" }).format(visit.date)}
+                          {", "}
+                          {formatTime(visit.date)}
+                        </span>
+                      </div>
+                    ))}
+                    {upcoming.length > 4 && (
+                      <p className="text-xs text-muted-foreground">
+                        + jeszcze {upcoming.length - 4} {upcoming.length - 4 === 1 ? "wizyta" : "wizyty"}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-muted-foreground">
@@ -164,6 +185,36 @@ export default function ClientDashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Historia wizyt */}
+      {history.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
+            <IconHistory size={22} className="text-primary" />
+            Ostatnie wizyty
+          </h2>
+          <div className="flex flex-col gap-2">
+            {history.slice(0, 5).map((visit) => (
+              <Card key={visit.id} className="border-border/60 p-0">
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold">{visit.treatment}</div>
+                    <div className="text-sm capitalize text-muted-foreground">
+                      {formatDate(visit.date)} · {visit.price} zł
+                    </div>
+                  </div>
+                  <Button asChild variant="outline" className="shrink-0 gap-1.5 border-primary/40 text-primary hover:text-primary">
+                    <Link href={`/rezerwacje?zabieg=${encodeURIComponent(visit.treatment)}`}>
+                      <IconRepeat size={16} />
+                      Zarezerwuj ponownie
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

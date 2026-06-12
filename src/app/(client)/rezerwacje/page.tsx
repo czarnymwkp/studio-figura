@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   IconCalendarHeart, IconCheck, IconChevronLeft, IconChevronRight,
   IconClock, IconSparkles, IconX,
@@ -12,8 +12,11 @@ import { usePricing } from "@/lib/hooks/usePricing"
 import { useClientPortal } from "@/lib/hooks/useClientPortal"
 import {
   addAppointment, cancelAppointment, subscribeDayAppointments,
-  parseDuration, parsePrice,
+  parseDuration, parsePrice, type DayAppointment,
 } from "@/lib/firebase/appointments"
+import { subscribeEmployees, subscribeRangeShifts, type Employee, type Shift } from "@/lib/firebase/schedule"
+import { subscribeDevices, type Device } from "@/lib/firebase/devices"
+import type { PriceItem } from "@/lib/firebase/pricing"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,8 +27,16 @@ import {
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+// Sloty co 30 minut: 8:00–17:30 (wartości w godzinach, np. 10.5 = 10:30)
+const SLOTS = Array.from({ length: 20 }, (_, i) => 8 + i * 0.5)
+const CLOSING_HOUR = 18
 const WEEKDAYS = ["pn", "wt", "śr", "cz", "pt", "so", "nd"]
+
+function slotLabel(slot: number) {
+  const h = Math.floor(slot)
+  const m = Math.round((slot - h) * 60)
+  return `${h}:${String(m).padStart(2, "0")}`
+}
 
 /** Pełna siatka miesiąca — od poniedziałku pierwszego tygodnia do niedzieli ostatniego. */
 function getMonthGrid(viewMonth: Date): Date[] {
@@ -66,19 +77,98 @@ export default function RezerwacjePage() {
   })
   const monthGrid = useMemo(() => getMonthGrid(viewMonth), [viewMonth])
   const [categoryId, setCategoryId] = useState<string | null>(null)
-  const [treatment, setTreatment] = useState<{ name: string; duration: string; price: string } | null>(null)
+  const [treatment, setTreatment] = useState<PriceItem | null>(null)
   const [day, setDay] = useState<Date | null>(null)
   const [hour, setHour] = useState<number | null>(null)
-  const [takenHours, setTakenHours] = useState<number[]>([])
+  const [dayAppointments, setDayAppointments] = useState<DayAppointment[]>([])
+  const [dayShifts, setDayShifts] = useState<Shift[]>([])
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [devices, setDevices] = useState<Device[]>([])
   const [saving, setSaving] = useState(false)
 
   const activeCategory = pricing.find((c) => c.id === categoryId) ?? pricing[0]
 
+  useEffect(() => subscribeEmployees(setEmployees), [])
+  useEffect(() => subscribeDevices(setDevices), [])
+
+  // Wstępny wybór zabiegu z linku "Zarezerwuj ponownie" (?zabieg=...)
+  const preselected = useRef(false)
+  useEffect(() => {
+    if (preselected.current || pricing.length === 0) return
+    const wanted = new URLSearchParams(window.location.search).get("zabieg")
+    if (!wanted) { preselected.current = true; return }
+    for (const cat of pricing) {
+      const item = cat.items.find((i) => i.name === wanted)
+      if (item) {
+        setCategoryId(cat.id)
+        setTreatment(item)
+        break
+      }
+    }
+    preselected.current = true
+  }, [pricing])
+
   useEffect(() => {
     if (!day) return
     setHour(null)
-    return subscribeDayAppointments(day, setTakenHours)
+    const end = new Date(day)
+    end.setHours(23, 59, 59, 999)
+    const unsubAppts = subscribeDayAppointments(day, setDayAppointments)
+    const unsubShifts = subscribeRangeShifts(day, end, setDayShifts)
+    return () => { unsubAppts(); unsubShifts() }
   }, [day])
+
+  const duration = treatment ? parseDuration(treatment.duration) : 0
+
+  /** Czy ktoś z umiejętnością do zabiegu ma zmianę pokrywającą [slot, slot+duration]? */
+  const staffAvailable = (slot: number) => {
+    if (!treatment) return false
+    const end = slot + duration
+    return employees.some((emp) => {
+      if (!emp.skills.includes(treatment.name)) return false
+      const empShifts = dayShifts.filter((s) => s.employeeId === emp.uid)
+      if (empShifts.length === 0) return false
+      // zmiany są przyległe (8-13, 13-18) — sprawdzamy pokrycie całego przedziału
+      let cursor = slot
+      const sorted = [...empShifts].sort((a, b) => a.startHour - b.startHour)
+      for (const s of sorted) {
+        if (s.startHour <= cursor && cursor < s.endHour) cursor = s.endHour
+      }
+      return cursor >= end
+    })
+  }
+
+  /** Czy urządzenie ma wolną sztukę w przedziale [slot, slot+duration]? */
+  const deviceAvailable = (slot: number) => {
+    if (!treatment?.device) return true
+    const device = devices.find((d) => d.id === treatment.device)
+    if (!device) return true
+    if (!device.active) return false
+    const end = slot + duration
+    const overlapping = dayAppointments.filter((a) => {
+      if (a.device !== treatment.device) return false
+      const aStart = a.date.getHours() + a.date.getMinutes() / 60
+      const aEnd = aStart + a.duration
+      return aStart < end && aEnd > slot
+    })
+    return overlapping.length < device.count
+  }
+
+  const anyStaffToday = treatment
+    ? employees.some((emp) =>
+        emp.skills.includes(treatment.name) &&
+        dayShifts.some((s) => s.employeeId === emp.uid)
+      )
+    : false
+
+  const slotAvailable = (slot: number) => {
+    if (!treatment || !day) return false
+    if (slot + duration > CLOSING_HOUR) return false
+    const now = new Date()
+    const isToday = day.toDateString() === now.toDateString()
+    if (isToday && slot <= now.getHours() + now.getMinutes() / 60) return false
+    return staffAvailable(slot) && deviceAvailable(slot)
+  }
 
   const canBook = treatment && day && hour !== null && !saving
 
@@ -87,7 +177,7 @@ export default function RezerwacjePage() {
     setSaving(true)
     try {
       const date = new Date(day)
-      date.setHours(hour, 0, 0, 0)
+      date.setHours(Math.floor(hour), Math.round((hour - Math.floor(hour)) * 60), 0, 0)
       await addAppointment({
         clientId: profile.uid,
         clientName: profile.displayName ?? "",
@@ -96,9 +186,10 @@ export default function RezerwacjePage() {
         date,
         duration: parseDuration(treatment.duration),
         price: parsePrice(treatment.price),
+        device: treatment.device ?? "",
       })
       toast.success("Wizyta zarezerwowana", {
-        description: `${treatment.name} — ${fullDate(date)}, ${hour}:00`,
+        description: `${treatment.name} — ${fullDate(date)}, ${slotLabel(hour)}`,
       })
       setTreatment(null)
       setDay(null)
@@ -255,28 +346,33 @@ export default function RezerwacjePage() {
         </h2>
         {!day ? (
           <p className="text-sm text-muted-foreground">Najpierw wybierz dzień.</p>
+        ) : !treatment ? (
+          <p className="text-sm text-muted-foreground">Najpierw wybierz zabieg — dostępność godzin zależy od grafiku i urządzeń.</p>
+        ) : !anyStaffToday ? (
+          <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            W tym dniu nikt z personelu nie wykonuje zabiegu „{treatment.name}”.
+            Wybierz inny dzień.
+          </div>
         ) : (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {HOURS.map((h) => {
-              const past = isToday(day) && h <= new Date().getHours()
-              const taken = takenHours.includes(h)
-              const disabled = past || taken
-              const selected = hour === h
+            {SLOTS.map((slot) => {
+              const available = slotAvailable(slot)
+              const selected = hour === slot
               return (
                 <button
-                  key={h}
-                  disabled={disabled}
-                  onClick={() => setHour(h)}
+                  key={slot}
+                  disabled={!available}
+                  onClick={() => setHour(slot)}
                   className={cn(
                     "rounded-xl border py-2.5 text-sm font-semibold transition-colors",
                     selected
                       ? "border-primary bg-primary text-primary-foreground"
-                      : disabled
+                      : !available
                         ? "cursor-not-allowed border-border/40 text-muted-foreground/40 line-through"
                         : "border-border/60 hover:border-primary/40"
                   )}
                 >
-                  {h}:00
+                  {slotLabel(slot)}
                 </button>
               )
             })}
@@ -348,7 +444,7 @@ export default function RezerwacjePage() {
                 <div className="truncate font-semibold">{treatment.name}</div>
                 <div className="truncate text-sm capitalize text-muted-foreground">
                   {day ? fullDate(day) : "wybierz dzień"}
-                  {day && (hour !== null ? `, ${hour}:00` : ", wybierz godzinę")}
+                  {day && (hour !== null ? `, ${slotLabel(hour)}` : ", wybierz godzinę")}
                   {" · "}
                   <span className="font-semibold text-primary">{treatment.price}</span>
                 </div>

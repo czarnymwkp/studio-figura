@@ -7,11 +7,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { IconPlus, IconTag, IconClock, IconCurrencyZloty, IconLayoutList } from "@tabler/icons-react"
+import { IconPlus, IconTag, IconClock, IconCurrencyZloty, IconLayoutList, IconTool } from "@tabler/icons-react"
 import {
   addItem, updateItem, addCategory,
   type PriceItem, type PriceCategory,
 } from "@/lib/firebase/pricing"
+import { subscribeDevices, type Device } from "@/lib/firebase/devices"
 
 interface Props {
   open: boolean
@@ -20,7 +21,7 @@ interface Props {
   editData?: { categoryId: string; item: PriceItem } | null
 }
 
-const EMPTY = { name: "", duration: "", price: "" }
+const EMPTY: PriceItem = { name: "", duration: "", price: "", device: "" }
 
 export function PricingItemDialog({ open, onClose, categories, editData }: Props) {
   const [item, setItem] = useState<PriceItem>(EMPTY)
@@ -28,11 +29,14 @@ export function PricingItemDialog({ open, onClose, categories, editData }: Props
   const [newCategory, setNewCategory] = useState("")
   const [isNewCategory, setIsNewCategory] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [devices, setDevices] = useState<Device[]>([])
+
+  useEffect(() => subscribeDevices(setDevices), [])
 
   useEffect(() => {
     if (!open) return
     if (editData) {
-      setItem({ ...editData.item })
+      setItem({ device: "", ...editData.item })
       setSelectedCategoryId(editData.categoryId)
       setIsNewCategory(false)
       setNewCategory("")
@@ -151,6 +155,27 @@ export function PricingItemDialog({ open, onClose, categories, editData }: Props
               placeholder="np. Depilacja laserowa — nogi całe"
               className="h-10"
             />
+          </div>
+
+          {/* Urządzenie */}
+          <div className="flex flex-col gap-1.5">
+            <Label className="flex items-center gap-1.5 text-sm font-medium">
+              <IconTool size={15} className="text-primary" />
+              Urządzenie
+            </Label>
+            <select
+              value={item.device ?? ""}
+              onChange={(e) => set("device", e.target.value)}
+              className="flex h-10 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="">Bez urządzenia (np. masaż ręczny)</option>
+              {devices.map((d) => (
+                <option key={d.id} value={d.id}>{d.name} ({d.count} szt.)</option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Liczba sztuk urządzenia ogranicza ile rezerwacji może trwać równolegle.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

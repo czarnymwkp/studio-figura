@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { IconChevronLeft, IconChevronRight, IconNote, IconX } from "@tabler/icons-react"
+import { IconCheck, IconChevronLeft, IconChevronRight, IconNote, IconX } from "@tabler/icons-react"
 import {
   subscribeRangeAppointments, rescheduleAppointment, cancelAppointment,
-  updateAppointmentNote, type WeekAppointment,
+  updateAppointmentNote, completeAppointment, pointsForPrice,
+  type WeekAppointment,
 } from "@/lib/firebase/appointments"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -202,7 +203,7 @@ export default function TerminarzPage() {
                         setNoteAppt(appt)
                         setNoteText(appt.note)
                       }}
-                      className={`absolute left-1 right-1 rounded-lg border overflow-hidden cursor-grab active:cursor-grabbing group transition-opacity ${compact ? "px-1.5 py-0.5" : "p-2"} ${color} ${draggingId === appt.id ? "opacity-30" : "opacity-100"}`}
+                      className={`absolute left-1 right-1 rounded-lg border overflow-hidden cursor-grab active:cursor-grabbing group transition-opacity ${compact ? "px-1.5 py-0.5" : "p-2"} ${color} ${draggingId === appt.id ? "opacity-30" : appt.status === "completed" ? "opacity-50" : "opacity-100"}`}
                       style={{
                         top: startOffset * CELL_HEIGHT + 2,
                         height: tileHeight,
@@ -218,12 +219,14 @@ export default function TerminarzPage() {
                         <p className="text-[11px] font-semibold leading-tight truncate pr-4">
                           {timeLabel(appt.date)} · {appt.clientName} · {appt.treatment}
                           {appt.note && <IconNote size={11} className="ml-1 inline shrink-0" />}
+                          {appt.status === "completed" && <IconCheck size={11} className="ml-1 inline shrink-0" />}
                         </p>
                       ) : medium ? (
                         <>
                           <p className="text-xs font-semibold leading-tight truncate pr-4">
                             {timeLabel(appt.date)} · {appt.clientName}
                             {appt.note && <IconNote size={11} className="ml-1 inline shrink-0" />}
+                            {appt.status === "completed" && <IconCheck size={11} className="ml-1 inline shrink-0" />}
                           </p>
                           <p className="text-xs opacity-75 leading-tight truncate">{appt.treatment}</p>
                         </>
@@ -234,6 +237,7 @@ export default function TerminarzPage() {
                           <p className="flex items-center gap-1 text-xs opacity-60 leading-tight">
                             {timeLabel(appt.date)}
                             {appt.note && <IconNote size={12} className="shrink-0" />}
+                            {appt.status === "completed" && <IconCheck size={12} className="shrink-0" />}
                           </p>
                         </>
                       )}
@@ -288,22 +292,46 @@ export default function TerminarzPage() {
             placeholder="Np. preferencje klientki, przebieg zabiegu, na co zwrócić uwagę..."
             className="w-full resize-none rounded-lg border border-input bg-transparent p-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
           />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNoteAppt(null)}>
-              Anuluj
-            </Button>
-            <Button
-              disabled={savingNote}
-              onClick={async () => {
-                if (!noteAppt) return
-                setSavingNote(true)
-                await updateAppointmentNote(noteAppt.id, noteText.trim())
-                setSavingNote(false)
-                setNoteAppt(null)
-              }}
-            >
-              {savingNote ? "Zapisywanie..." : "Zapisz notatkę"}
-            </Button>
+          <DialogFooter className="gap-2 sm:justify-between">
+            {noteAppt?.status === "completed" ? (
+              <span className="flex items-center gap-1.5 text-sm font-medium text-green-500">
+                <IconCheck size={16} />
+                Zrealizowana
+              </span>
+            ) : (
+              <Button
+                variant="outline"
+                className="border-green-600/50 text-green-500 hover:bg-green-600/10 hover:text-green-400"
+                disabled={savingNote}
+                onClick={async () => {
+                  if (!noteAppt) return
+                  setSavingNote(true)
+                  await completeAppointment(noteAppt.id, noteAppt.clientId, noteAppt.price)
+                  setSavingNote(false)
+                  setNoteAppt(null)
+                }}
+              >
+                <IconCheck size={16} />
+                Zrealizowana (+{noteAppt ? pointsForPrice(noteAppt.price) : 0} pkt)
+              </Button>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setNoteAppt(null)}>
+                Anuluj
+              </Button>
+              <Button
+                disabled={savingNote}
+                onClick={async () => {
+                  if (!noteAppt) return
+                  setSavingNote(true)
+                  await updateAppointmentNote(noteAppt.id, noteText.trim())
+                  setSavingNote(false)
+                  setNoteAppt(null)
+                }}
+              >
+                {savingNote ? "Zapisywanie..." : "Zapisz notatkę"}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { IconChevronDown, IconAlertTriangle } from "@tabler/icons-react"
+import { IconChevronDown, IconAlertTriangle, IconMinus, IconPlus } from "@tabler/icons-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,36 +12,59 @@ interface DeviceCardProps {
   name: string
   description: string
   image: string
-  active?: boolean
+  active: boolean
+  count: number
+  onToggleActive: () => void
+  onChangeCount: (count: number) => void
 }
 
-export function DeviceCard({ name, description, image, active = true }: DeviceCardProps) {
+export function DeviceCard({ name, description, image, active, count, onToggleActive, onChangeCount }: DeviceCardProps) {
   const [open, setOpen] = useState(false)
-  const [status, setStatus] = useState(active)
 
   return (
-    <Card className="rounded-2xl border border-primary/40 bg-card overflow-hidden flex flex-col">
+    <Card className="rounded-2xl border border-primary/40 bg-card overflow-hidden flex flex-col p-0">
       <div className="relative w-full aspect-square bg-muted">
         <Image src={image} alt={name} fill className="object-contain p-4" />
-        {/* Status badge */}
         <div className="absolute top-2 left-2">
           <Badge
-            onClick={() => setStatus(v => !v)}
+            onClick={onToggleActive}
             className={cn(
               "cursor-pointer text-xs font-semibold select-none",
-              status
+              active
                 ? "bg-green-600/20 text-green-400 border-green-600/30 hover:bg-green-600/30"
                 : "bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30"
             )}
             variant="outline"
           >
-            {status ? "Aktywne" : "Nieaktywne"}
+            {active ? "Aktywne" : "Nieaktywne"}
           </Badge>
         </div>
       </div>
-      <CardContent className="flex flex-col gap-2 p-4">
+      <CardContent className="flex flex-col gap-2 p-4 pt-0">
         <h1 className="text-sm font-bold leading-tight">{name}</h1>
-        {!status && (
+
+        {/* Liczba sztuk */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Sztuk w studio</span>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => onChangeCount(count - 1)}
+              disabled={count <= 1}
+              className="flex size-6 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <IconMinus size={12} />
+            </button>
+            <span className="min-w-5 text-center text-sm font-bold text-primary">{count}</span>
+            <button
+              onClick={() => onChangeCount(count + 1)}
+              className="flex size-6 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            >
+              <IconPlus size={12} />
+            </button>
+          </div>
+        </div>
+
+        {!active && (
           <Button
             size="sm"
             variant="destructive"

@@ -16,6 +16,7 @@ export interface PriceItem {
   name: string
   duration: string
   price: string
+  device?: string // id urządzenia z kolekcji devices
 }
 
 export interface PriceCategory {

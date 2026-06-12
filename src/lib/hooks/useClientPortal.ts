@@ -71,7 +71,7 @@ export function useClientPortal(): ClientPortalData {
         .sort((a, b) => a.date.getTime() - b.date.getTime())
 
       setUpcoming(all.filter((a) => a.date >= now && a.status !== "cancelled"))
-      setHistory(all.filter((a) => a.date < now).reverse())
+      setHistory(all.filter((a) => a.date < now && a.status !== "cancelled").reverse())
       setLoading(false)
     })
 

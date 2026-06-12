@@ -7,6 +7,7 @@ import {
   IconStar, IconClock, IconSparkles, IconTrendingUp, IconTrendingDown,
 } from "@tabler/icons-react"
 import { useDashboard } from "@/lib/hooks/useDashboard"
+import { PlanCard } from "@/components/admin/PlanCard"
 
 function formatRevenue(n: number) {
   return n.toLocaleString("pl-PL") + " zł"
@@ -130,31 +131,36 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Aktywne promocje */}
-        <Card className="rounded-2xl border border-primary/40">
-          <CardHeader className="pb-2 flex flex-row items-center gap-2">
-            <IconSparkles size={18} className="text-primary" />
-            <span className="font-semibold">Aktywne promocje</span>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {loading
-              ? <p className="text-xs text-muted-foreground">Ładowanie...</p>
-              : activePromotions.length === 0
-                ? <p className="text-sm text-muted-foreground">Brak aktywnych promocji</p>
-                : activePromotions.map((promo) => (
-                    <div key={promo.id} className="flex flex-col gap-1 p-3 rounded-xl border border-primary/20 bg-primary/5">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium leading-tight">{promo.name}</span>
-                        <Badge className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/20 shrink-0">
-                          {promo.discount}
-                        </Badge>
+        <div className="flex flex-col gap-4">
+          {/* Aktywne promocje */}
+          <Card className="rounded-2xl border border-primary/40">
+            <CardHeader className="pb-2 flex flex-row items-center gap-2">
+              <IconSparkles size={18} className="text-primary" />
+              <span className="font-semibold">Aktywne promocje</span>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {loading
+                ? <p className="text-xs text-muted-foreground">Ładowanie...</p>
+                : activePromotions.length === 0
+                  ? <p className="text-sm text-muted-foreground">Brak aktywnych promocji</p>
+                  : activePromotions.map((promo) => (
+                      <div key={promo.id} className="flex flex-col gap-1 p-3 rounded-xl border border-primary/20 bg-primary/5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-medium leading-tight">{promo.name}</span>
+                          <Badge className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/20 shrink-0">
+                            {promo.discount}
+                          </Badge>
+                        </div>
+                        <span className="text-xs text-muted-foreground">do {promo.validUntil}</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">do {promo.validUntil}</span>
-                    </div>
-                  ))
-            }
-          </CardContent>
-        </Card>
+                    ))
+              }
+            </CardContent>
+          </Card>
+
+          {/* Abonament + dodatki */}
+          <PlanCard />
+        </div>
       </div>
 
       {/* Dzisiejsze wizyty */}

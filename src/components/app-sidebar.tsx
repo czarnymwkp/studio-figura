@@ -18,7 +18,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { IconLayoutDashboard, IconUsersGroup, IconUserCheck, IconTool, IconTag, IconCamera, IconFileDescription, IconFileAi, IconSettings, IconHelp, IconSearch, IconContract, IconReport, IconSpeakerphone } from "@tabler/icons-react"
+import { IconLayoutDashboard, IconUsersGroup, IconUserCheck, IconTool, IconTag, IconCamera, IconFileDescription, IconFileAi, IconSettings, IconHelp, IconSearch, IconContract, IconReport, IconSpeakerphone, IconCalendarTime } from "@tabler/icons-react"
 
 const data = {
   navMain: [
@@ -36,6 +36,11 @@ const data = {
       title: "Pracownicy",
       url: "/admin/pracownicy",
       icon: <IconUserCheck size={22} className="text-primary" />,
+    },
+    {
+      title: "Grafik",
+      url: "/admin/grafik",
+      icon: <IconCalendarTime size={22} className="text-primary" />,
     },
     {
       title: "Urządzenia",

@@ -1,12 +1,15 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { IconCalendarHeart, IconHome, IconSparkles, IconLogout, IconUser } from "@tabler/icons-react"
+import { toast } from "sonner"
 
 import useRequireAuth from "@/lib/hooks/useRequireAuth"
 import { logout } from "@/lib/firebase/auth"
+import { claimDailyLoginBonus, LOGIN_STREAK_TARGET } from "@/lib/firebase/appointments"
 import { UserRole } from "@/types"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -32,6 +35,23 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const { profile, loading } = useRequireAuth(ALLOWED_ROLES)
   const pathname = usePathname()
   const router = useRouter()
+
+  useEffect(() => {
+    if (!profile) return
+    claimDailyLoginBonus(profile.uid).then(({ newDay, awarded, streak }) => {
+      if (!newDay) return
+      if (awarded) {
+        toast.success(`Wspaniale! ${LOGIN_STREAK_TARGET} dni logowania z rzędu — masz +1 punkt lojalnościowy`)
+      } else {
+        const left = LOGIN_STREAK_TARGET - streak
+        toast.info(
+          `Wspaniale, to ${streak}. dzień z rzędu! ${left === 1
+            ? "Jeszcze tylko 1 dzień do dodatkowego punktu lojalnościowego"
+            : `Pozostało jeszcze ${left} dni do dodatkowego punktu lojalnościowego`}`
+        )
+      }
+    })
+  }, [profile])
 
   if (loading || !profile) return null
 
