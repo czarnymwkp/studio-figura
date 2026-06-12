@@ -61,39 +61,64 @@ export default function HomePage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:px-6 md:py-24">
-          <div className="flex flex-col items-start gap-6">
-            <span className="rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-              Salony modelowania sylwetki dla kobiet
-            </span>
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-              Twoja figura.
-              <br />
-              <span className="text-primary">Nasza technologia.</span>
-            </h1>
-            <p className="max-w-md text-lg leading-relaxed text-muted-foreground">
-              Modelowanie sylwetki, kosmetologia i wellness w jednym miejscu. Kriolipoliza,
-              HIFU 4D, depilacja laserowa i kilkanaście innych zabiegów — bez skalpela
-              i bez rekonwalescencji.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="px-6 text-base font-semibold">
-                <Link href="/#salony">Umów pierwszą wizytę</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="px-6 text-base font-semibold">
-                <Link href="/#oferta">Zobacz ofertę</Link>
-              </Button>
+        <section className="relative overflow-hidden">
+          <Image
+            src="/img/studio-figura-login.jpg"
+            alt="Kosmetolożka Studio Figura podczas zabiegu pielęgnacji twarzy"
+            fill
+            priority
+            className="object-cover object-[70%_30%]"
+            sizes="100vw"
+          />
+          {/* scrim pod tekst: w jasnym motywie delikatna mgiełka, w ciemnym mocniejszy gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-background/75 via-background/35 to-transparent dark:from-background/90 dark:via-background/70 dark:to-background/15" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
+
+          <div className="relative mx-auto flex min-h-[70svh] max-w-6xl flex-col justify-center px-4 py-16 md:px-6">
+            <div className="flex max-w-xl flex-col items-start gap-6">
+              <span className="rounded-full border border-primary/40 bg-primary/15 px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-sm">
+                Salony modelowania sylwetki dla kobiet
+              </span>
+              <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
+                Twoja figura.
+                <br />
+                <span className="text-primary">Nasza technologia.</span>
+              </h1>
+              <p className="max-w-md text-lg leading-relaxed text-foreground/80">
+                Kriolipoliza, HIFU 4D, depilacja laserowa i kilkanaście innych zabiegów —
+                bez skalpela i bez rekonwalescencji. Pierwsza konsultacja z analizą składu
+                ciała jest bezpłatna.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Button asChild size="lg" className="px-7 text-base font-semibold shadow-lg shadow-primary/25">
+                  <Link href="/#salony">Umów pierwszą wizytę</Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-foreground/25 bg-background/40 px-7 text-base font-semibold backdrop-blur-sm"
+                >
+                  <Link href="/#oferta">Zobacz ofertę</Link>
+                </Button>
+              </div>
             </div>
-          </div>
-          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-primary/20">
-            <Image
-              src="/img/studio-figura-login.jpg"
-              alt="Wnętrze salonu Studio Figura"
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
+
+            {/* pasek zaufania */}
+            <dl className="mt-16 grid w-fit grid-cols-3 gap-x-10 gap-y-2 border-t border-foreground/15 pt-6 md:gap-x-16">
+              <div>
+                <dt className="text-2xl font-extrabold text-primary md:text-3xl">400+</dt>
+                <dd className="text-sm text-foreground/70">salonów w Polsce</dd>
+              </div>
+              <div>
+                <dt className="text-2xl font-extrabold text-primary md:text-3xl">30+</dt>
+                <dd className="text-sm text-foreground/70">zabiegów i urządzeń</dd>
+              </div>
+              <div>
+                <dt className="text-2xl font-extrabold text-primary md:text-3xl">0 zł</dt>
+                <dd className="text-sm text-foreground/70">pierwsza konsultacja</dd>
+              </div>
+            </dl>
           </div>
         </section>
 
@@ -189,16 +214,26 @@ export default function HomePage() {
         </section>
 
         {/* CTA */}
-        <section className="border-t border-border/40 bg-primary/10">
-          <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 px-4 py-16 text-center md:px-6">
-            <h2 className="text-3xl font-bold tracking-tight">Gotowa na zmianę?</h2>
-            <p className="max-w-md text-muted-foreground">
-              Wybierz salon i zadzwoń — pierwsza konsultacja z analizą składu ciała jest
-              bezpłatna, a konto w panelu klienta założymy Ci na miejscu.
-            </p>
-            <Button asChild size="lg" className="px-6 text-base font-semibold">
-              <Link href="/#salony">Wybierz swój salon</Link>
-            </Button>
+        <section className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+          <div className="relative overflow-hidden rounded-3xl border border-primary/25 shadow-xl">
+            <Image
+              src="/img/kobido.jpg"
+              alt="Masaż kobido w Studio Figura"
+              fill
+              className="object-cover object-[center_35%]"
+              sizes="(max-width: 1152px) 100vw, 1152px"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/65 via-background/35 to-background/10 dark:from-background/90 dark:via-background/75 dark:to-background/40" />
+            <div className="relative flex flex-col items-center gap-5 px-6 py-16 text-center md:px-16 md:py-24">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Gotowa na zmianę?</h2>
+              <p className="max-w-md text-foreground/80">
+                Wybierz salon i zadzwoń — pierwsza konsultacja z analizą składu ciała jest
+                bezpłatna, a konto w panelu klienta założymy Ci na miejscu.
+              </p>
+              <Button asChild size="lg" className="px-7 text-base font-semibold shadow-lg shadow-primary/25">
+                <Link href="/#salony">Wybierz swój salon</Link>
+              </Button>
+            </div>
           </div>
         </section>
       </main>

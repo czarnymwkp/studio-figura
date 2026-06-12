@@ -13,6 +13,7 @@ import { claimDailyLoginBonus, LOGIN_STREAK_TARGET } from "@/lib/firebase/appoin
 import { UserRole } from "@/types"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { Toaster } from "@/components/ui/sonner"
 import {
   DropdownMenu,
@@ -92,6 +93,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             ))}
           </nav>
 
+          <div className="flex items-center gap-1.5">
+          <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger className="rounded-full outline-none ring-primary/50 focus-visible:ring-2">
               <Avatar className="size-10 border-2 border-primary/40">
@@ -125,6 +128,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </header>
 

@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { SITE_URL } from "@/lib/site";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -40,10 +41,13 @@ export default function RootLayout({
   return (
     <html
       lang="pl"
-      className={cn("h-full antialiased dark", plusJakarta.variable, geistMono.variable, "font-sans")}
+      suppressHydrationWarning
+      className={cn("h-full antialiased", plusJakarta.variable, geistMono.variable, "font-sans")}
     >
       <body className="min-h-screen">
-        <TooltipProvider>{children}</TooltipProvider>
+        <ThemeProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

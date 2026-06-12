@@ -2,6 +2,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { IconUser } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 const navLinks = [
   { href: "/#oferta", label: "Oferta" },
@@ -31,12 +32,15 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <Button asChild variant="outline" className="gap-2">
-          <Link href="/login">
-            <IconUser size={18} />
-            Panel klienta
-          </Link>
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle />
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/login">
+              <IconUser size={18} />
+              Panel klienta
+            </Link>
+          </Button>
+        </div>
       </div>
     </header>
   )

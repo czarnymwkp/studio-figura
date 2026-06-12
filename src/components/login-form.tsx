@@ -68,7 +68,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden border-primary/20 bg-background p-0 shadow-xl ring-2 ring-primary/50 dark:ring-0">
         <CardContent className="grid p-0 md:grid-cols-2">
           <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
@@ -82,12 +82,12 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="email@example.com" {...register("email")} />
+                  <Input id="email" type="email" placeholder="email@example.com" className="border-primary/50 dark:border-input" {...register("email")} />
                   {errors.email && <span className="text-xs text-destructive">{errors.email.message}</span>}
                 </div>
                 <div className="flex flex-col gap-1">
                   <Label htmlFor="password">Hasło</Label>
-                  <Input id="password" type="password" {...register("password")} />
+                  <Input id="password" type="password" className="border-primary/50 dark:border-input" {...register("password")} />
                   {errors.password && <span className="text-xs text-destructive">{errors.password.message}</span>}
                 </div>
                 {firebaseError && <span className="text-sm text-destructive text-center">{firebaseError}</span>}
