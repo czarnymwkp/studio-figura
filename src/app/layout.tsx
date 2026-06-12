@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { SITE_URL } from "@/lib/site";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -16,8 +17,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Studio Figura",
-  description: "",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Studio Figura",
+    template: "%s | Studio Figura",
+  },
+  description:
+    "Salony modelowania sylwetki dla kobiet — kosmetologia, fitness i wellness.",
+  openGraph: {
+    siteName: "Studio Figura",
+    locale: "pl_PL",
+    type: "website",
+    images: [{ url: "/img/studio-figura-login.jpg", width: 1200, height: 800 }],
+  },
 };
 
 export default function RootLayout({
