@@ -38,18 +38,21 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (!profile) return
-    claimDailyLoginBonus(profile.uid).then(({ newDay, awarded, streak }) => {
-      if (!newDay) return
+    claimDailyLoginBonus(profile.uid).then(({ awarded, streak }) => {
       if (awarded) {
-        toast.success(`Wspaniale! ${LOGIN_STREAK_TARGET} dni logowania z rzędu — masz +1 punkt lojalnościowy`)
-      } else {
-        const left = LOGIN_STREAK_TARGET - streak
-        toast.info(
-          `Wspaniale, to ${streak}. dzień z rzędu! ${left === 1
-            ? "Jeszcze tylko 1 dzień do dodatkowego punktu lojalnościowego"
-            : `Pozostało jeszcze ${left} dni do dodatkowego punktu lojalnościowego`}`
-        )
+        toast.success(`Brawo! ${LOGIN_STREAK_TARGET} dni logowania z rzędu — zdobywasz +1 punkt lojalnościowy`)
+        return
       }
+      // streak 0 = dzień tuż po zdobyciu punktu (seria wystartuje jutro)
+      if (streak < 1) return
+      const left = LOGIN_STREAK_TARGET - streak
+      toast.info(
+        streak === 1
+          ? `Seria logowań rozpoczęta! Loguj się codziennie — po ${LOGIN_STREAK_TARGET} dniach z rzędu zdobędziesz punkt lojalnościowy`
+          : `Brawo, logujesz się już ${streak}. dzień z rzędu! ${left === 1
+              ? "Jeszcze tylko 1 dzień do punktu lojalnościowego"
+              : `Jeszcze ${left} dni do punktu lojalnościowego`}`
+      )
     })
   }, [profile])
 

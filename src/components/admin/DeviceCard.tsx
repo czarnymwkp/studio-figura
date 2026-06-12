@@ -23,7 +23,7 @@ export function DeviceCard({ name, description, image, active, count, onToggleAc
 
   return (
     <Card className="rounded-2xl border border-primary/40 bg-card overflow-hidden flex flex-col p-0">
-      <div className="relative w-full aspect-square bg-muted">
+      <div className="relative w-full aspect-square bg-white">
         <Image src={image} alt={name} fill className="object-contain p-4" />
         <div className="absolute top-2 left-2">
           <Badge
