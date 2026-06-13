@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PaymentDialog } from "@/components/client/PaymentDialog"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -85,6 +86,7 @@ export default function RezerwacjePage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [devices, setDevices] = useState<Device[]>([])
   const [saving, setSaving] = useState(false)
+  const [payment, setPayment] = useState<{ treatment: string; price: string; date: string } | null>(null)
 
   const activeCategory = pricing.find((c) => c.id === categoryId) ?? pricing[0]
 
@@ -184,8 +186,10 @@ export default function RezerwacjePage() {
         price: parsePrice(treatment.price),
         device: treatment.device ?? "",
       })
-      toast.success(d.bookBtn, {
-        description: `${treatment.name} — ${fullDate(date)}, ${slotLabel(hour)}`,
+      setPayment({
+        treatment: treatment.name,
+        price: treatment.price,
+        date: `${fullDate(date)}, ${slotLabel(hour)}`,
       })
       setTreatment(null)
       setDay(null)
@@ -425,6 +429,16 @@ export default function RezerwacjePage() {
             ))}
           </div>
         </section>
+      )}
+
+      {payment && (
+        <PaymentDialog
+          open
+          treatment={payment.treatment}
+          price={payment.price}
+          date={payment.date}
+          onClose={() => setPayment(null)}
+        />
       )}
 
       {/* Summary bar */}
