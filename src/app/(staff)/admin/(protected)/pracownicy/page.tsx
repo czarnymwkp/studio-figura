@@ -6,14 +6,20 @@ import { Button } from "@/components/ui/button"
 import { IconUserPlus, IconUsers } from "@tabler/icons-react"
 import { EmployeeCard } from "@/components/admin/EmployeeCard"
 import { SkillsDialog } from "@/components/admin/SkillsDialog"
+import { EmployeeEditDialog } from "@/components/admin/EmployeeEditDialog"
 import { subscribeEmployees, type Employee } from "@/lib/firebase/schedule"
 import { Skeleton } from "@/components/ui/skeleton"
+import useAuthState from "@/lib/hooks/useAuthState"
 
 export default function PracownicyPage() {
   const router = useRouter()
+  const { profile } = useAuthState()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [skillsTarget, setSkillsTarget] = useState<Employee | null>(null)
+  const [editTarget, setEditTarget] = useState<Employee | null>(null)
+
+  const isAdmin = profile?.role === "admin"
 
   useEffect(() => {
     return subscribeEmployees((data) => {
@@ -26,10 +32,12 @@ export default function PracownicyPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Pracownicy</h1>
-        <Button size="lg" className="text-base font-semibold px-6" onClick={() => router.push("/admin/pracownicy/dodaj")}>
-          <IconUserPlus size={20} />
-          Dodaj pracownika
-        </Button>
+        {isAdmin && (
+          <Button size="lg" className="text-base font-semibold px-6" onClick={() => router.push("/admin/pracownicy/dodaj")}>
+            <IconUserPlus size={20} />
+            Dodaj pracownika
+          </Button>
+        )}
       </div>
 
       {loading ? (
@@ -53,14 +61,21 @@ export default function PracownicyPage() {
               key={emp.uid}
               name={`${emp.name} ${emp.surname}`}
               position={emp.position}
+              role={emp.role}
               skillsCount={emp.skills.length}
               onClick={() => setSkillsTarget(emp)}
+              onEditRole={isAdmin ? () => setEditTarget(emp) : undefined}
             />
           ))}
         </div>
       )}
 
       <SkillsDialog employee={skillsTarget} onClose={() => setSkillsTarget(null)} />
+      <EmployeeEditDialog
+        employee={editTarget}
+        currentUserUid={profile?.uid}
+        onClose={() => setEditTarget(null)}
+      />
     </div>
   )
 }

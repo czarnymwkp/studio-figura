@@ -1,11 +1,9 @@
 "use client"
 
 import * as React from "react"
-
 import Image from "next/image"
-
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
+import { NavDocuments } from "@/components/nav-documents"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -16,9 +14,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { IconLayoutDashboard, IconUsersGroup, IconUserCheck, IconTool, IconTag, IconCamera, IconFileDescription, IconFileAi, IconSettings, IconHelp, IconSearch, IconContract, IconReport, IconSpeakerphone, IconCalendarTime } from "@tabler/icons-react"
+import {
+  IconLayoutDashboard, IconUsersGroup, IconUserCheck, IconTool,
+  IconTag, IconSettings, IconHelp, IconSearch,
+  IconSpeakerphone, IconCalendarTime, IconRobot,
+  IconContract, IconReport,
+} from "@tabler/icons-react"
 
 const data = {
   navMain: [
@@ -57,68 +59,29 @@ const data = {
       url: "/admin/cennik",
       icon: <IconTag size={22} className="text-primary" />,
     },
+    {
+      title: "Automatyzacja",
+      url: "/admin/automatyzacja",
+      icon: <IconRobot size={22} className="text-primary" />,
+      onClick: () => window.dispatchEvent(new CustomEvent("automatyzacja:reset")),
+    },
   ],
-  navClouds: [
+  navDocuments: [
     {
-      title: "Capture",
-      icon: (
-        <IconCamera
-        />
-      ),
-      isActive: true,
+      name: "Umowy z klientami",
       url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      icon: <IconContract size={22} className="text-primary" />,
     },
     {
-      title: "Proposal",
-      icon: (
-        <IconFileDescription
-        />
-      ),
+      name: "Raporty",
       url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: (
-        <IconFileAi
-        />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      icon: <IconReport size={22} className="text-primary" />,
     },
   ],
   navSecondary: [
     {
       title: "Ustawienia",
-      url: "#",
+      url: "/admin/ustawienia",
       icon: <IconSettings size={22} className="text-primary" />,
     },
     {
@@ -130,18 +93,6 @@ const data = {
       title: "Wyszukaj",
       url: "#",
       icon: <IconSearch size={22} className="text-primary" />,
-    },
-  ],
-  documents: [
-    {
-      name: "Umowy z klientami",
-      url: "#",
-      icon: <IconContract size={22} className="text-primary" />,
-    },
-    {
-      name: "Raporty",
-      url: "#",
-      icon: <IconReport size={22} className="text-primary" />,
     },
   ],
 }
@@ -164,12 +115,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <SidebarSeparator className="mx-4 my-1 opacity-30" />
-        <NavDocuments items={data.documents} />
+
+        {/* Separator */}
+        <div className="mx-4 my-3 h-px bg-primary/30" />
+
+        <NavDocuments items={data.navDocuments} />
+
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>

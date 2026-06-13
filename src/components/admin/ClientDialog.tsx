@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import {
   IconUser, IconMail, IconPhone, IconCalendar,
-  IconUserPlus, IconDeviceFloppy, IconLock,
+  IconUserPlus, IconDeviceFloppy, IconLock, IconTicket,
 } from "@tabler/icons-react"
 import { updateClient, type Client } from "@/lib/firebase/clients"
 import { auth } from "@/lib/firebase/config"
@@ -23,7 +23,10 @@ interface Props {
 
 const EMPTY = {
   name: "", surname: "", email: "", phone: "",
-  subscription: false, lastVisit: null as string | null, nextVisit: null as string | null,
+  subscription: false,
+  subscriptionTotal: null as number | null,
+  subscriptionUsed: null as number | null,
+  lastVisit: null as string | null, nextVisit: null as string | null,
   password: "",
 }
 
@@ -49,7 +52,7 @@ export function ClientDialog({ open, onClose, client }: Props) {
     if (!open) return
     setError("")
     setForm(client
-      ? { name: client.name, surname: client.surname, email: client.email, phone: client.phone, subscription: client.subscription, lastVisit: client.lastVisit, nextVisit: client.nextVisit, password: "" }
+      ? { name: client.name, surname: client.surname, email: client.email, phone: client.phone, subscription: client.subscription, subscriptionTotal: client.subscriptionTotal, subscriptionUsed: client.subscriptionUsed, lastVisit: client.lastVisit, nextVisit: client.nextVisit, password: "" }
       : EMPTY
     )
   }, [client, open])
@@ -71,10 +74,12 @@ export function ClientDialog({ open, onClose, client }: Props) {
         await updateClient(client.id, {
           name: form.name, surname: form.surname, email: form.email,
           phone: form.phone, subscription: form.subscription,
+          subscriptionTotal: form.subscription ? (form.subscriptionTotal ?? null) : null,
+          subscriptionUsed: form.subscription ? (form.subscriptionUsed ?? 0) : null,
           lastVisit: form.lastVisit, nextVisit: form.nextVisit,
         })
       } else {
-        const token = await auth.currentUser?.getIdToken()
+        const token = await auth.currentUser?.getIdToken(true)
         const res = await fetch("/api/clients", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -145,11 +150,47 @@ export function ClientDialog({ open, onClose, client }: Props) {
 
           <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-4 py-3">
             <div>
-              <p className="text-sm font-medium">Aktywna subskrypcja</p>
+              <p className="text-sm font-medium">Aktywny karnet</p>
               <p className="text-xs text-muted-foreground">Klient posiada aktywny pakiet zabiegów</p>
             </div>
             <Switch checked={form.subscription} onCheckedChange={(v) => set("subscription", v)} />
           </div>
+
+          {form.subscription && (
+            <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-4">
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
+                <IconTicket size={14} /> Szczegóły karnetu
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <FieldRow icon={<IconTicket size={15} />} label="Liczba zabiegów w karnecie">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={form.subscriptionTotal ?? ""}
+                    onChange={(e) => set("subscriptionTotal", e.target.value ? Number(e.target.value) : null)}
+                    placeholder="np. 10"
+                    className="h-10"
+                  />
+                </FieldRow>
+                <FieldRow icon={<IconTicket size={15} />} label="Wykorzystane zabiegi">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={form.subscriptionTotal ?? undefined}
+                    value={form.subscriptionUsed ?? ""}
+                    onChange={(e) => set("subscriptionUsed", e.target.value ? Number(e.target.value) : null)}
+                    placeholder="np. 0"
+                    className="h-10"
+                  />
+                </FieldRow>
+              </div>
+              {form.subscriptionTotal != null && form.subscriptionUsed != null && (
+                <p className="text-xs text-muted-foreground">
+                  Pozostało: <strong className="text-foreground">{Math.max(0, form.subscriptionTotal - form.subscriptionUsed)}</strong> z {form.subscriptionTotal} zabiegów
+                </p>
+              )}
+            </div>
+          )}
 
           {error && <p className="text-sm text-destructive font-medium text-center">{error}</p>}
         </div>

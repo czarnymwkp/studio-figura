@@ -19,6 +19,7 @@ export function NavMain({
     title: string
     url: string
     icon?: React.ReactNode
+    onClick?: () => void
   }[]
 }) {
   const pathname = usePathname()
@@ -53,7 +54,7 @@ export function NavMain({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url} className="h-11 text-base font-medium">
-                <Link href={item.url}>
+                <Link href={item.url} onClick={item.onClick}>
                   {item.icon}
                   <span>{item.title}</span>
                 </Link>

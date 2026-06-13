@@ -6,6 +6,7 @@ import {
   doc,
   onSnapshot,
   Timestamp,
+  increment,
   query,
   orderBy,
 } from "firebase/firestore"
@@ -18,6 +19,8 @@ export interface Client {
   email: string
   phone: string
   subscription: boolean
+  subscriptionTotal: number | null
+  subscriptionUsed: number | null
   lastVisit: string | null
   nextVisit: string | null
 }
@@ -28,6 +31,8 @@ interface ClientData {
   email: string
   phone: string
   subscription: boolean
+  subscriptionTotal?: number | null
+  subscriptionUsed?: number | null
   lastVisit: Timestamp | null
   nextVisit: Timestamp | null
   createdAt: Timestamp
@@ -41,6 +46,8 @@ function fromFirestore(id: string, data: ClientData): Client {
     email: data.email,
     phone: data.phone,
     subscription: data.subscription,
+    subscriptionTotal: data.subscriptionTotal ?? null,
+    subscriptionUsed: data.subscriptionUsed ?? null,
     lastVisit: data.lastVisit ? data.lastVisit.toDate().toISOString().split("T")[0] : null,
     nextVisit: data.nextVisit ? data.nextVisit.toDate().toISOString().split("T")[0] : null,
   }
@@ -72,4 +79,8 @@ export async function updateClient(id: string, data: Omit<Client, "id">) {
 
 export async function deleteClient(id: string) {
   await deleteDoc(doc(db, "clients", id))
+}
+
+export async function subtractVisit(id: string) {
+  await updateDoc(doc(db, "clients", id), { subscriptionUsed: increment(1) })
 }

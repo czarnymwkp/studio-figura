@@ -4,7 +4,7 @@ import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch } from "@tabler/icons-react"
+import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch, IconMinus } from "@tabler/icons-react"
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useClients } from "@/lib/hooks/useClients"
-import { deleteClient, type Client } from "@/lib/firebase/clients"
+import { deleteClient, subtractVisit, type Client } from "@/lib/firebase/clients"
 import { ClientDialog } from "@/components/admin/ClientDialog"
 import {
   AlertDialog,
@@ -39,6 +39,7 @@ export default function KlienciPage() {
   const [editClient, setEditClient] = useState<Client | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteName, setDeleteName] = useState("")
+  const [subtractConfirm, setSubtractConfirm] = useState<string | null>(null)
   const dragIndex = useRef<number | null>(null)
 
   const filtered = query.trim().length < 3
@@ -88,7 +89,7 @@ export default function KlienciPage() {
               <TableHead className="font-semibold text-foreground">Nazwisko</TableHead>
               <TableHead className="font-semibold text-foreground">Email</TableHead>
               <TableHead className="font-semibold text-foreground">Telefon</TableHead>
-              <TableHead className="font-semibold text-foreground text-center">Subskrypcja</TableHead>
+              <TableHead className="font-semibold text-foreground text-center">Karnet</TableHead>
               <TableHead className="font-semibold text-foreground">Ostatnia wizyta</TableHead>
               <TableHead className="font-semibold text-foreground">Następna wizyta</TableHead>
               <TableHead className="w-10" />
@@ -125,8 +126,17 @@ export default function KlienciPage() {
                 <TableCell className="text-muted-foreground">{client.email}</TableCell>
                 <TableCell className="text-muted-foreground">{client.phone}</TableCell>
                 <TableCell className="text-center">
-                  {client.subscription
-                    ? <Badge className="bg-green-600/20 text-green-400 border-green-600/30 hover:bg-green-600/20">Aktywna</Badge>
+                  {client.subscription && client.subscriptionTotal != null ? (() => {
+                    const used = client.subscriptionUsed ?? 0
+                    const remaining = Math.max(0, client.subscriptionTotal - used)
+                    const low = remaining <= 2
+                    return (
+                      <span className={`text-sm font-semibold tabular-nums ${low ? "text-destructive" : "text-green-500"}`}>
+                        {remaining}/{client.subscriptionTotal}
+                      </span>
+                    )
+                  })() : client.subscription
+                    ? <Badge className="bg-green-600/20 text-green-400 border-green-600/30 hover:bg-green-600/20">Aktywny</Badge>
                     : <Badge variant="outline" className="text-muted-foreground">Brak</Badge>
                   }
                 </TableCell>
@@ -134,6 +144,32 @@ export default function KlienciPage() {
                 <TableCell>{formatDate(client.nextVisit)}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
+                    {client.subscription && client.subscriptionTotal != null && (
+                      subtractConfirm === client.id ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-xs border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                          onClick={async () => {
+                            await subtractVisit(client.id)
+                            setSubtractConfirm(null)
+                          }}
+                        >
+                          Potwierdź −1
+                        </Button>
+                      ) : (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8 text-primary hover:text-primary hover:bg-primary/10"
+                          title="Odejmij zabieg z karnetu"
+                          onClick={() => setSubtractConfirm(client.id)}
+                          onBlur={() => setTimeout(() => setSubtractConfirm(null), 200)}
+                        >
+                          <IconMinus size={15} />
+                        </Button>
+                      )
+                    )}
                     <Button size="icon" variant="ghost" className="size-8" onClick={() => openEdit(client)}>
                       <IconPencil size={15} />
                     </Button>

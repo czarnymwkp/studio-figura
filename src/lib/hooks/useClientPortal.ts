@@ -27,6 +27,8 @@ export interface ClientPromotion {
 interface ClientPortalData {
   points: number
   subscription: boolean
+  subscriptionTotal: number | null
+  subscriptionUsed: number | null
   upcoming: ClientAppointment[]
   history: ClientAppointment[]
   promotions: ClientPromotion[]
@@ -37,6 +39,8 @@ export function useClientPortal(): ClientPortalData {
   const { user } = useAuth()
   const [points, setPoints] = useState(0)
   const [subscription, setSubscription] = useState(false)
+  const [subscriptionTotal, setSubscriptionTotal] = useState<number | null>(null)
+  const [subscriptionUsed, setSubscriptionUsed] = useState<number | null>(null)
   const [upcoming, setUpcoming] = useState<ClientAppointment[]>([])
   const [history, setHistory] = useState<ClientAppointment[]>([])
   const [promotions, setPromotions] = useState<ClientPromotion[]>([])
@@ -49,6 +53,8 @@ export function useClientPortal(): ClientPortalData {
       const data = snap.data()
       setPoints(data?.points ?? 0)
       setSubscription(data?.subscription ?? false)
+      setSubscriptionTotal(data?.subscriptionTotal ?? null)
+      setSubscriptionUsed(data?.subscriptionUsed ?? null)
     })
 
     // Single-field filter only — sorting/splitting client-side avoids a composite index
@@ -87,5 +93,5 @@ export function useClientPortal(): ClientPortalData {
     }
   }, [user])
 
-  return { points, subscription, upcoming, history, promotions, loading }
+  return { points, subscription, subscriptionTotal, subscriptionUsed, upcoming, history, promotions, loading }
 }

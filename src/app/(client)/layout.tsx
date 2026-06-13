@@ -4,10 +4,11 @@ import { useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { IconCalendarHeart, IconHome, IconSparkles, IconLogout, IconUser } from "@tabler/icons-react"
+import { IconCalendarHeart, IconHome, IconSparkles, IconLogout, IconUser, IconWorldOff } from "@tabler/icons-react"
 import { toast } from "sonner"
 
 import useRequireAuth from "@/lib/hooks/useRequireAuth"
+import { usePortalSettings } from "@/lib/hooks/usePortalSettings"
 import { logout } from "@/lib/firebase/auth"
 import { claimDailyLoginBonus, LOGIN_STREAK_TARGET } from "@/lib/firebase/appointments"
 import { UserRole } from "@/types"
@@ -30,6 +31,7 @@ const ALLOWED_ROLES: UserRole[] = ["client"]
 
 function ClientLayoutInner({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useRequireAuth(ALLOWED_ROLES)
+  const portal = usePortalSettings()
   const { dict } = useLocale()
   const pathname = usePathname()
   const router = useRouter()
@@ -58,6 +60,24 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
   }, [profile, dict])
 
   if (loading || !profile) return null
+
+  if (!portal.loading && !portal.active) {
+    const dp = dict.client.portal.inactive
+    return (
+      <div className="min-h-svh flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-background via-background to-primary/5 text-center px-4">
+        <IconWorldOff size={52} className="text-muted-foreground" />
+        <h2 className="text-2xl font-bold">{dp.title}</h2>
+        <p className="text-muted-foreground max-w-sm">{dp.description}</p>
+        <button
+          onClick={async () => { await logout(); router.push("/login") }}
+          className="mt-2 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          {dp.logout}
+        </button>
+        <Toaster position="top-center" />
+      </div>
+    )
+  }
 
   const initials = profile.displayName
     ?.split(" ")

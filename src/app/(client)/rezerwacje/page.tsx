@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import useAuthState from "@/lib/hooks/useAuthState"
 import { usePricing } from "@/lib/hooks/usePricing"
 import { useClientPortal } from "@/lib/hooks/useClientPortal"
+import { usePortalSettings } from "@/lib/hooks/usePortalSettings"
 import { useLocale } from "@/components/locale-context"
 import {
   addAppointment, cancelAppointment, subscribeDayAppointments,
@@ -55,6 +56,7 @@ export default function RezerwacjePage() {
   const { profile } = useAuthState()
   const { pricing, loading: pricingLoading } = usePricing()
   const { upcoming } = useClientPortal()
+  const portal = usePortalSettings()
   const { dict } = useLocale()
   const d = dict.client.bookings
 
@@ -203,6 +205,22 @@ export default function RezerwacjePage() {
 
   const isToday = (date: Date) => date.toDateString() === new Date().toDateString()
 
+  if (!portal.loading && !portal.allowBookings) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{d.h1}</h1>
+          <p className="mt-1 text-muted-foreground">{d.subtitle}</p>
+        </div>
+        <div className="rounded-2xl border border-dashed border-border p-12 text-center">
+          <IconCalendarHeart size={40} className="mx-auto mb-4 text-muted-foreground" />
+          <p className="text-lg font-semibold">{d.disabledTitle}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{d.disabledText}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-8 pb-28">
       <div>
@@ -260,7 +278,7 @@ export default function RezerwacjePage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-primary">{item.price}</span>
+                      {portal.showPricing && <span className="font-bold text-primary">{item.price}</span>}
                       {selected && <IconCheck size={18} className="text-primary" />}
                     </div>
                   </button>
@@ -395,7 +413,7 @@ export default function RezerwacjePage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-primary">{appt.price} zł</span>
+                    {portal.showPricing && <span className="font-bold text-primary">{appt.price} zł</span>}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
@@ -451,8 +469,12 @@ export default function RezerwacjePage() {
                 <div className="truncate text-sm capitalize text-muted-foreground">
                   {day ? fullDate(day) : d.chooseDay}
                   {day && (hour !== null ? `, ${slotLabel(hour)}` : `, ${d.chooseTime}`)}
-                  {" · "}
-                  <span className="font-semibold text-primary">{treatment.price}</span>
+                  {portal.showPricing && (
+                    <>
+                      {" · "}
+                      <span className="font-semibold text-primary">{treatment.price}</span>
+                    </>
+                  )}
                 </div>
               </>
             ) : (

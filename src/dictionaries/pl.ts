@@ -172,6 +172,27 @@ export const pl: Dictionary = {
         heading: "Ostatnie wizyty",
         bookAgain: "Zarezerwuj ponownie",
       },
+      subscription: {
+        label: "Karnet zabiegowy",
+        badgeLow: "Kończy się",
+        badgeEmpty: "Wyczerpany",
+        warningLow: (n) => `Zostały tylko ${n} ${n === 1 ? "zabieg" : "zabiegi"} — czas odnowić karnet!`,
+        warningEmpty: "Karnet wyczerpany — odnów go, aby kontynuować zabiegi",
+        used: (n, total) => `Wykorzystano ${n} z ${total} zabiegów`,
+        renewBtn: "Odnów karnet",
+        renewTitle: "Odnów karnet",
+        renewDesc: (name) => `Skontaktuj się z ${name}, aby dokupić zabiegi lub wybrać nowy pakiet.`,
+        call: "Zadzwoń",
+        write: "Napisz",
+        noContact: "Dane kontaktowe studia nie zostały jeszcze skonfigurowane przez administratora.",
+      },
+    },
+    portal: {
+      inactive: {
+        title: "Portal niedostępny",
+        description: "Portal klienta jest tymczasowo wyłączony. Skontaktuj się ze studiem, aby uzyskać więcej informacji.",
+        logout: "Wyloguj się",
+      },
     },
     bookings: {
       h1: "Rezerwacja wizyty",
@@ -194,6 +215,8 @@ export const pl: Dictionary = {
       chooseTime: "wybierz godzinę",
       bookingFailed: "Nie udało się zarezerwować wizyty. Spróbuj ponownie.",
       cancelled: "Wizyta odwołana",
+      disabledTitle: "Rezerwacje online niedostępne",
+      disabledText: "Skontaktuj się ze studiem, aby umówić wizytę.",
     },
     promotions: {
       h1: "Promocje",

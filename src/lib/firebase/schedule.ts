@@ -8,7 +8,10 @@ export interface Employee {
   uid: string
   name: string
   surname: string
+  email: string
+  phone: string
   position: string
+  role: "admin" | "employee"
   skills: string[]
 }
 
@@ -31,16 +34,21 @@ export function subscribeEmployees(callback: (employees: Employee[]) => void) {
   const q = query(collection(db, "employees"), orderBy("name", "asc"))
   return onSnapshot(q, (snap) => {
     callback(
-      snap.docs.map((d) => {
-        const data = d.data()
-        return {
-          uid: d.id,
-          name: data.name,
-          surname: data.surname,
-          position: data.position ?? "",
-          skills: data.skills ?? [],
-        }
-      })
+      snap.docs
+        .filter((d) => !d.data().archived)
+        .map((d) => {
+          const data = d.data()
+          return {
+            uid: d.id,
+            name: data.name,
+            surname: data.surname,
+            email: data.email ?? "",
+            phone: data.phone ?? "",
+            position: data.position ?? "",
+            role: data.role === "admin" ? "admin" : "employee",
+            skills: data.skills ?? [],
+          }
+        })
     )
   })
 }

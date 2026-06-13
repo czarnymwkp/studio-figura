@@ -172,6 +172,27 @@ export const en: Dictionary = {
         heading: "Recent visits",
         bookAgain: "Book again",
       },
+      subscription: {
+        label: "Treatment package",
+        badgeLow: "Running low",
+        badgeEmpty: "Exhausted",
+        warningLow: (n) => `Only ${n} ${n === 1 ? "treatment" : "treatments"} left — time to renew!`,
+        warningEmpty: "Package exhausted — renew it to continue your treatments",
+        used: (n, total) => `${n} of ${total} treatments used`,
+        renewBtn: "Renew package",
+        renewTitle: "Renew package",
+        renewDesc: (name) => `Contact ${name} to purchase more treatments or choose a new package.`,
+        call: "Call us",
+        write: "Email us",
+        noContact: "Studio contact details have not been configured yet.",
+      },
+    },
+    portal: {
+      inactive: {
+        title: "Portal unavailable",
+        description: "The client portal is temporarily disabled. Please contact the studio for more information.",
+        logout: "Log out",
+      },
     },
     bookings: {
       h1: "Book a visit",
@@ -194,6 +215,8 @@ export const en: Dictionary = {
       chooseTime: "choose a time",
       bookingFailed: "Booking failed. Please try again.",
       cancelled: "Appointment cancelled",
+      disabledTitle: "Online bookings unavailable",
+      disabledText: "Please contact the studio to schedule a visit.",
     },
     promotions: {
       h1: "Promotions",

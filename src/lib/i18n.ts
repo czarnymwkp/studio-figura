@@ -110,6 +110,23 @@ export type Dictionary = {
         validUntil: (date: string) => string
       }
       history: { heading: string; bookAgain: string }
+      subscription: {
+        label: string
+        badgeLow: string
+        badgeEmpty: string
+        warningLow: (n: number) => string
+        warningEmpty: string
+        used: (n: number, total: number) => string
+        renewBtn: string
+        renewTitle: string
+        renewDesc: (studioName: string) => string
+        call: string
+        write: string
+        noContact: string
+      }
+    }
+    portal: {
+      inactive: { title: string; description: string; logout: string }
     }
     bookings: {
       h1: string
@@ -132,6 +149,8 @@ export type Dictionary = {
       chooseTime: string
       bookingFailed: string
       cancelled: string
+      disabledTitle: string
+      disabledText: string
     }
     promotions: {
       h1: string
