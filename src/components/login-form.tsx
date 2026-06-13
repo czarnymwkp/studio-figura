@@ -84,9 +84,15 @@ export function LoginForm({ className, lang = "pl", loginDict = DEFAULT_LOGIN_DI
 
   if (redirecting) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background">
         <Image src="/img/logo.png" alt="Studio Figura" width={72} height={72} className="rounded-xl" />
         <Spinner className="h-8 w-8 text-primary" />
+        <p
+          className="animate-in fade-in duration-700 text-center text-sm text-muted-foreground"
+          style={{ animationDelay: "400ms", animationFillMode: "both" }}
+        >
+          Zaraz znajdziesz się w swoim salonie Studio Figura
+        </p>
       </div>
     )
   }
