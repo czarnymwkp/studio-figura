@@ -56,9 +56,11 @@ export function LoginForm({ className, lang = "pl", loginDict = DEFAULT_LOGIN_DI
 
       if (profile.role === "client") {
         setRedirecting(true)
+        await new Promise((r) => setTimeout(r, 1200))
         router.push("/dashboard")
       } else if (profile.role === "admin" || profile.role === "employee") {
         setRedirecting(true)
+        await new Promise((r) => setTimeout(r, 1200))
         router.push("/admin/dashboard")
       } else {
         setFirebaseError(d.errors.noPermission)
