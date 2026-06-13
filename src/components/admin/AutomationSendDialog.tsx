@@ -10,6 +10,7 @@ import {
   IconDeviceMobile, IconMail, IconUsers, IconPlayerPlay,
   IconCircleCheck, IconAlertTriangle,
 } from "@tabler/icons-react"
+import { auth } from "@/lib/firebase/config"
 import { subscribeClients, type Client } from "@/lib/firebase/clients"
 import { markAutomationRun, TRIGGER_LABELS, AUDIENCE_LABELS, type Automation } from "@/lib/firebase/automations"
 
@@ -86,6 +87,7 @@ export function AutomationSendDialog({ automation, onClose }: Props) {
   const [loadingClients, setLoadingClients] = useState(true)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const [sendResult, setSendResult] = useState<{ ok: number; failed: number } | null>(null)
 
   useEffect(() => {
     if (!automation) return
@@ -102,9 +104,32 @@ export function AutomationSendDialog({ automation, onClose }: Props) {
   const recipients = filterClients(allClients, automation)
 
   const handleSend = async () => {
+    if (!automation) return
     setSending(true)
+    setSendResult(null)
     try {
+      const token = await auth.currentUser?.getIdToken(true)
+      const toSend = recipients.filter((c) => c.phone)
+
+      let ok = 0
+      let failed = 0
+      for (const client of toSend) {
+        const message = renderMessage(automation.message, client)
+        try {
+          const res = await fetch("/api/sms/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ to: client.phone, message }),
+          })
+          if (res.ok) ok++
+          else failed++
+        } catch {
+          failed++
+        }
+      }
+
       await markAutomationRun(automation.id)
+      setSendResult({ ok, failed })
       setSent(true)
     } finally {
       setSending(false)
@@ -189,12 +214,19 @@ export function AutomationSendDialog({ automation, onClose }: Props) {
           </div>
 
           {/* Wysłano */}
-          {sent && (
-            <div className="flex items-center gap-3 rounded-xl border border-green-600/30 bg-green-600/10 px-4 py-3">
-              <IconCircleCheck size={18} className="text-green-500 shrink-0" />
-              <p className="text-sm text-green-500 font-medium">
-                Wysyłka zarejestrowana. Integracja {automation.channel === "sms" ? "SMS" : "e-mail"} w przygotowaniu.
-              </p>
+          {sent && sendResult && (
+            <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${sendResult.failed === 0 ? "border-green-600/30 bg-green-600/10" : "border-orange-500/30 bg-orange-500/10"}`}>
+              <IconCircleCheck size={18} className={`shrink-0 mt-0.5 ${sendResult.failed === 0 ? "text-green-500" : "text-orange-500"}`} />
+              <div className="text-sm">
+                <p className={`font-semibold ${sendResult.failed === 0 ? "text-green-600" : "text-orange-600"}`}>
+                  Wysłano {sendResult.ok} z {sendResult.ok + sendResult.failed} SMS-ów
+                </p>
+                {sendResult.failed > 0 && (
+                  <p className="text-muted-foreground mt-0.5">
+                    {sendResult.failed} {sendResult.failed === 1 ? "wiadomość nie dotarła" : "wiadomości nie dotarły"} — sprawdź numery telefonów klientów.
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>

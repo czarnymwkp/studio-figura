@@ -4,7 +4,7 @@ import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch, IconMinus } from "@tabler/icons-react"
+import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch, IconMinus, IconMessage } from "@tabler/icons-react"
 import {
   Table,
   TableBody,
@@ -16,6 +16,7 @@ import {
 import { useClients } from "@/lib/hooks/useClients"
 import { deleteClient, subtractVisit, type Client } from "@/lib/firebase/clients"
 import { ClientDialog } from "@/components/admin/ClientDialog"
+import { ClientSmsDialog } from "@/components/admin/ClientSmsDialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +41,7 @@ export default function KlienciPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteName, setDeleteName] = useState("")
   const [subtractConfirm, setSubtractConfirm] = useState<string | null>(null)
+  const [smsClient, setSmsClient] = useState<Client | null>(null)
   const dragIndex = useRef<number | null>(null)
 
   const filtered = query.trim().length < 3
@@ -170,6 +172,14 @@ export default function KlienciPage() {
                         </Button>
                       )
                     )}
+                    <Button
+                      size="icon" variant="ghost"
+                      className="size-8 text-primary hover:text-primary hover:bg-primary/10"
+                      title="Wyślij SMS"
+                      onClick={() => setSmsClient(client)}
+                    >
+                      <IconMessage size={15} />
+                    </Button>
                     <Button size="icon" variant="ghost" className="size-8" onClick={() => openEdit(client)}>
                       <IconPencil size={15} />
                     </Button>
@@ -193,6 +203,11 @@ export default function KlienciPage() {
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         client={editClient}
+      />
+
+      <ClientSmsDialog
+        client={smsClient}
+        onClose={() => setSmsClient(null)}
       />
 
       <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
