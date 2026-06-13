@@ -143,7 +143,7 @@ export default function RezerwacjePage() {
     if (!treatment?.device) return true
     const device = devices.find((dv) => dv.id === treatment.device)
     if (!device) return true
-    if (!device.active) return false
+    if (!device.active || device.count === 0) return false
     const end = slot + duration
     const overlapping = dayAppointments.filter((a) => {
       if (a.device !== treatment.device) return false

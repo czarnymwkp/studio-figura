@@ -36,5 +36,5 @@ export async function setDeviceActive(id: string, active: boolean) {
 }
 
 export async function setDeviceCount(id: string, count: number) {
-  await updateDoc(doc(db, "devices", id), { count: Math.max(1, count) })
+  await updateDoc(doc(db, "devices", id), { count: Math.max(0, count) })
 }
