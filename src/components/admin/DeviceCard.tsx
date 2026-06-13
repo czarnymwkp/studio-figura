@@ -44,7 +44,7 @@ export function DeviceCard({ name, description, image, active, count, onToggleAc
                 "cursor-pointer text-xs font-semibold select-none",
                 active
                   ? "!bg-primary text-primary-foreground border-primary hover:!bg-primary/90"
-                  : "bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30"
+                  : "!bg-destructive text-white border-destructive hover:!bg-destructive/90"
               )}
               variant="outline"
             >
