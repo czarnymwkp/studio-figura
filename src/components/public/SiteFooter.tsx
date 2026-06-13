@@ -57,6 +57,11 @@ export async function SiteFooter({ lang = "pl", dict: dictProp }: Props) {
                 {d.faqLink}
               </Link>
             </li>
+            <li>
+              <Link href="/polityka-prywatnosci" className="text-foreground/80 transition-colors hover:text-primary">
+                {d.privacyPolicy}
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

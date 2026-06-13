@@ -19,6 +19,7 @@ export const pl: Dictionary = {
     forClients: "Dla klientek",
     loginLink: "Logowanie do panelu klienta",
     faqLink: "Najczęstsze pytania",
+    privacyPolicy: "Polityka prywatności",
     copyright: "Wszystkie prawa zastrzeżone",
   },
 

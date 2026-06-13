@@ -22,6 +22,7 @@ export type Dictionary = {
     forClients: string
     loginLink: string
     faqLink: string
+    privacyPolicy: string
     copyright: string
   }
 

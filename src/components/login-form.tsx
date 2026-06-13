@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
 import type { Dictionary } from "@/lib/i18n"
 import { pl } from "@/dictionaries/pl"
 
@@ -30,6 +31,7 @@ interface LoginFormProps extends React.ComponentProps<"div"> {
 export function LoginForm({ className, lang = "pl", loginDict = DEFAULT_LOGIN_DICT, ...props }: LoginFormProps) {
   const router = useRouter()
   const [firebaseError, setFirebaseError] = useState("")
+  const [redirecting, setRedirecting] = useState(false)
   const d = loginDict
 
   const { register, handleSubmit, formState: { errors, isDirty, isValid, isSubmitting } } = useForm<LoginFormValues>({
@@ -53,8 +55,10 @@ export function LoginForm({ className, lang = "pl", loginDict = DEFAULT_LOGIN_DI
       const profile = userDoc.data() as UserProfile
 
       if (profile.role === "client") {
+        setRedirecting(true)
         router.push("/dashboard")
       } else if (profile.role === "admin" || profile.role === "employee") {
+        setRedirecting(true)
         router.push("/admin/dashboard")
       } else {
         setFirebaseError(d.errors.noPermission)
@@ -74,6 +78,15 @@ export function LoginForm({ className, lang = "pl", loginDict = DEFAULT_LOGIN_DI
         }
       }
     }
+  }
+
+  if (redirecting) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background">
+        <Image src="/img/logo.png" alt="Studio Figura" width={72} height={72} className="rounded-xl" />
+        <Spinner className="h-8 w-8 text-primary" />
+      </div>
+    )
   }
 
   return (

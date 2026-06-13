@@ -19,6 +19,7 @@ export const en: Dictionary = {
     forClients: "For clients",
     loginLink: "Client portal login",
     faqLink: "Frequently asked questions",
+    privacyPolicy: "Privacy policy",
     copyright: "All rights reserved",
   },
 

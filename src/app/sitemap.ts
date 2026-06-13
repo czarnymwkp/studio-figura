@@ -19,6 +19,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entries.push({ url, changeFrequency: "weekly", priority: 1 })
   }
 
+  // Static pages
+  entries.push({ url: `${SITE_URL}/polityka-prywatnosci`, changeFrequency: "yearly", priority: 0.3 })
+
   // City aggregator pages
   for (const slug of CITY_PAGES) {
     for (const url of allLocaleUrls(`/${slug}`)) {
