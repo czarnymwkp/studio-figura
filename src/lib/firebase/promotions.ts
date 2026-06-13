@@ -29,6 +29,10 @@ export async function addPromotion(data: Omit<Promotion, "id">) {
   await addDoc(collection(db, "promotions"), { ...data, createdAt: Timestamp.now() })
 }
 
+export async function updatePromotion(id: string, data: Partial<Omit<Promotion, "id">>) {
+  await updateDoc(doc(db, "promotions", id), data)
+}
+
 export async function deletePromotion(id: string) {
   await deleteDoc(doc(db, "promotions", id))
 }
