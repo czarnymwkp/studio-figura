@@ -17,10 +17,20 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import type { Dictionary } from "@/lib/i18n"
+import { pl } from "@/dictionaries/pl"
 
-export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+const DEFAULT_LOGIN_DICT = pl.login
+
+interface LoginFormProps extends React.ComponentProps<"div"> {
+  lang?: string
+  loginDict?: Dictionary["login"]
+}
+
+export function LoginForm({ className, lang = "pl", loginDict = DEFAULT_LOGIN_DICT, ...props }: LoginFormProps) {
   const router = useRouter()
   const [firebaseError, setFirebaseError] = useState("")
+  const d = loginDict
 
   const { register, handleSubmit, formState: { errors, isDirty, isValid, isSubmitting } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -35,7 +45,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       const userDoc = await getDoc(doc(db, "users", credentials.user.uid))
 
       if (!userDoc.exists()) {
-        setFirebaseError("Brak profilu. Skontaktuj się z administratorem.")
+        setFirebaseError(d.errors.noProfile)
         await auth.signOut()
         return
       }
@@ -47,20 +57,20 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       } else if (profile.role === "admin" || profile.role === "employee") {
         router.push("/admin/dashboard")
       } else {
-        setFirebaseError("Brak uprawnień.")
+        setFirebaseError(d.errors.noPermission)
         await auth.signOut()
       }
     } catch (error) {
       if (error instanceof FirebaseError) {
         switch (error.code) {
           case "auth/invalid-credential":
-            setFirebaseError("Nieprawidłowy email lub hasło.")
+            setFirebaseError(d.errors.invalidCredentials)
             break
           case "auth/too-many-requests":
-            setFirebaseError("Zbyt wiele prób. Spróbuj później.")
+            setFirebaseError(d.errors.tooManyRequests)
             break
           default:
-            setFirebaseError("Wystąpił błąd. Spróbuj ponownie.")
+            setFirebaseError(d.errors.generic)
         }
       }
     }
@@ -76,23 +86,23 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                 <Image src="/img/logo.png" alt="Studio Figura" width={64} height={64} />
                 <h1 className="text-2xl font-bold">Studio Figura</h1>
                 <p className="text-balance text-sm text-muted-foreground">
-                  Zaloguj się do swojego konta
+                  {d.subtitle}
                 </p>
               </div>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{d.email}</Label>
                   <Input id="email" type="email" placeholder="email@example.com" className="border-primary/50 dark:border-input" {...register("email")} />
                   {errors.email && <span className="text-xs text-destructive">{errors.email.message}</span>}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="password">Hasło</Label>
+                  <Label htmlFor="password">{d.password}</Label>
                   <Input id="password" type="password" className="border-primary/50 dark:border-input" {...register("password")} />
                   {errors.password && <span className="text-xs text-destructive">{errors.password.message}</span>}
                 </div>
                 {firebaseError && <span className="text-sm text-destructive text-center">{firebaseError}</span>}
                 <Button type="submit" className="w-full" disabled={!isDirty || !isValid || isSubmitting}>
-                  Zaloguj
+                  {d.submit}
                 </Button>
               </div>
             </div>

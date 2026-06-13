@@ -11,6 +11,7 @@ import { toast } from "sonner"
 
 import { auth, db } from "@/lib/firebase/config"
 import useAuthState from "@/lib/hooks/useAuthState"
+import { useLocale } from "@/components/locale-context"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -19,6 +20,8 @@ import { Label } from "@/components/ui/label"
 
 export default function ProfilPage() {
   const { profile } = useAuthState()
+  const { dict } = useLocale()
+  const d = dict.client.profile
 
   const [name, setName] = useState("")
   const [surname, setSurname] = useState("")
@@ -59,9 +62,9 @@ export default function ProfilPage() {
         updateDoc(doc(db, "users", profile.uid), { displayName }),
         auth.currentUser ? updateProfile(auth.currentUser, { displayName }) : Promise.resolve(),
       ])
-      toast.success("Dane zapisane")
+      toast.success(d.saved)
     } catch {
-      toast.error("Nie udało się zapisać danych")
+      toast.error(d.saveFailed)
     } finally {
       setSavingData(false)
     }
@@ -71,11 +74,11 @@ export default function ProfilPage() {
     const user = auth.currentUser
     if (!user?.email) return
     if (newPassword.length < 6) {
-      toast.error("Nowe hasło musi mieć co najmniej 6 znaków")
+      toast.error(d.passwordTooShort)
       return
     }
     if (newPassword !== newPassword2) {
-      toast.error("Hasła nie są takie same")
+      toast.error(d.passwordMismatch)
       return
     }
     setSavingPassword(true)
@@ -86,12 +89,12 @@ export default function ProfilPage() {
       setCurrentPassword("")
       setNewPassword("")
       setNewPassword2("")
-      toast.success("Hasło zmienione")
+      toast.success(d.passwordChanged)
     } catch (error) {
       if (error instanceof FirebaseError && error.code === "auth/invalid-credential") {
-        toast.error("Obecne hasło jest nieprawidłowe")
+        toast.error(d.wrongPassword)
       } else {
-        toast.error("Nie udało się zmienić hasła")
+        toast.error(d.passwordChangeFailed)
       }
     } finally {
       setSavingPassword(false)
@@ -100,9 +103,9 @@ export default function ProfilPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <h1 className="text-3xl font-bold tracking-tight">Mój profil</h1>
+      <h1 className="text-3xl font-bold tracking-tight">{d.h1}</h1>
 
-      {/* Wizytówka */}
+      {/* Card */}
       <Card className="border-border/60">
         <CardContent className="flex items-center gap-5 p-5">
           <div className="flex size-16 shrink-0 items-center justify-center rounded-full border-2 border-primary/40 bg-primary/15 text-xl font-bold text-primary">
@@ -119,31 +122,31 @@ export default function ProfilPage() {
         </CardContent>
       </Card>
 
-      {/* Dane osobowe */}
+      {/* Personal data */}
       <Card className="border-border/60">
         <CardHeader className="flex flex-row items-center gap-2 pb-2">
           <IconUserCircle size={18} className="text-primary" />
-          <span className="font-semibold">Dane osobowe</span>
+          <span className="font-semibold">{d.personalData}</span>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="name">Imię</Label>
+              <Label htmlFor="name">{d.firstName}</Label>
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="surname">Nazwisko</Label>
+              <Label htmlFor="surname">{d.lastName}</Label>
               <Input id="surname" value={surname} onChange={(e) => setSurname(e.target.value)} />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="phone">Telefon</Label>
+            <Label htmlFor="phone">{d.phone}</Label>
             <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="np. 500 600 700" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{d.email}</Label>
             <Input id="email" value={profile?.email ?? ""} disabled className="cursor-not-allowed opacity-50" />
-            <p className="text-xs text-muted-foreground">Adres email nie może być zmieniony.</p>
+            <p className="text-xs text-muted-foreground">{d.emailNote}</p>
           </div>
           <div className="flex justify-end">
             <Button
@@ -153,21 +156,21 @@ export default function ProfilPage() {
               onClick={saveData}
             >
               <IconDeviceFloppy size={18} />
-              {savingData ? "Zapisywanie..." : "Zapisz zmiany"}
+              {savingData ? d.saving : d.saveChanges}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Zmiana hasła */}
+      {/* Change password */}
       <Card className="border-border/60">
         <CardHeader className="flex flex-row items-center gap-2 pb-2">
           <IconLock size={18} className="text-primary" />
-          <span className="font-semibold">Zmiana hasła</span>
+          <span className="font-semibold">{d.changePassword}</span>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="currentPassword">Obecne hasło</Label>
+            <Label htmlFor="currentPassword">{d.currentPassword}</Label>
             <Input
               id="currentPassword"
               type="password"
@@ -177,7 +180,7 @@ export default function ProfilPage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="newPassword">Nowe hasło</Label>
+              <Label htmlFor="newPassword">{d.newPassword}</Label>
               <Input
                 id="newPassword"
                 type="password"
@@ -186,7 +189,7 @@ export default function ProfilPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="newPassword2">Powtórz nowe hasło</Label>
+              <Label htmlFor="newPassword2">{d.repeatNewPassword}</Label>
               <Input
                 id="newPassword2"
                 type="password"
@@ -204,7 +207,7 @@ export default function ProfilPage() {
               onClick={changePassword}
             >
               <IconLock size={18} />
-              {savingPassword ? "Zmienianie..." : "Zmień hasło"}
+              {savingPassword ? d.changingPassword : d.changePasswordBtn}
             </Button>
           </div>
         </CardContent>

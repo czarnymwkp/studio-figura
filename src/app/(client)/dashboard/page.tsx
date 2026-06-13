@@ -9,6 +9,7 @@ import {
 
 import useAuthState from "@/lib/hooks/useAuthState"
 import { useClientPortal } from "@/lib/hooks/useClientPortal"
+import { useLocale } from "@/components/locale-context"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,51 +17,49 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 const REWARD_THRESHOLD = 100
 
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("pl-PL", {
-    weekday: "long", day: "numeric", month: "long",
-  }).format(date)
-}
-
-function formatTime(date: Date) {
-  return new Intl.DateTimeFormat("pl-PL", { hour: "2-digit", minute: "2-digit" }).format(date)
-}
-
-function formatDuration(hours: number) {
-  const minutes = Math.round(hours * 60)
-  return minutes >= 60
-    ? `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${minutes % 60} min` : ""}`
-    : `${minutes} min`
-}
-
 export default function ClientDashboardPage() {
   const { profile } = useAuthState()
   const { points, upcoming, history, promotions, loading } = useClientPortal()
+  const { dict } = useLocale()
+  const d = dict.client.dashboard
 
   const firstName = profile?.displayName?.split(" ")[0]
   const nextVisit = upcoming[0]
   const progress = Math.min((points % REWARD_THRESHOLD) / REWARD_THRESHOLD * 100, 100)
   const toReward = REWARD_THRESHOLD - (points % REWARD_THRESHOLD)
 
+  function formatDate(date: Date) {
+    return new Intl.DateTimeFormat(dict.dateLocale, {
+      weekday: "long", day: "numeric", month: "long",
+    }).format(date)
+  }
+
+  function formatTime(date: Date) {
+    return new Intl.DateTimeFormat(dict.dateLocale, { hour: "2-digit", minute: "2-digit" }).format(date)
+  }
+
+  function formatDuration(hours: number) {
+    const minutes = Math.round(hours * 60)
+    return minutes >= 60
+      ? `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${minutes % 60} min` : ""}`
+      : `${minutes} min`
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Cześć{firstName ? `, ${firstName}` : ""}!
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Miło Cię widzieć. Zobacz, co dla Ciebie przygotowaliśmy.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{d.greeting(firstName)}</h1>
+        <p className="mt-1 text-muted-foreground">{d.subtitle}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Punkty lojalnościowe */}
+        {/* Points */}
         <Card className="relative overflow-hidden border-none bg-gradient-to-br from-primary to-orange-700 text-primary-foreground">
           <IconStar className="absolute -right-6 -top-6 size-36 rotate-12 opacity-10" />
           <CardContent className="flex h-full flex-col justify-between gap-6 p-6">
             <div className="flex items-center gap-2 text-sm font-medium opacity-90">
               <IconGift size={18} />
-              Twoje punkty
+              {d.points.label}
             </div>
             <div>
               <div className="text-5xl font-extrabold tracking-tight">{points}</div>
@@ -70,19 +69,17 @@ export default function ClientDashboardPage() {
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <p className="mt-2 text-sm opacity-90">
-                Jeszcze {toReward} pkt do nagrody — punkty zbierasz za każdą wizytę.
-              </p>
+              <p className="mt-2 text-sm opacity-90">{d.points.toReward(toReward)}</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Najbliższa wizyta */}
+        {/* Next visit */}
         <Card className="border-border/60">
           <CardContent className="flex h-full flex-col justify-between gap-6 p-6">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <IconCalendarHeart size={18} className="text-primary" />
-              Najbliższa wizyta
+              {d.nextVisit.label}
             </div>
             {loading ? (
               <div className="flex flex-col gap-3">
@@ -104,12 +101,12 @@ export default function ClientDashboardPage() {
 
                 {upcoming.length > 1 && (
                   <div className="mt-3 flex flex-col gap-2 border-t border-border/60 pt-3">
-                    <p className="text-xs font-medium uppercase text-muted-foreground">Kolejne wizyty</p>
+                    <p className="text-xs font-medium uppercase text-muted-foreground">{d.nextVisit.more}</p>
                     {upcoming.slice(1, 4).map((visit) => (
                       <div key={visit.id} className="flex items-center justify-between gap-3 text-sm">
                         <span className="truncate font-medium">{visit.treatment}</span>
                         <span className="shrink-0 capitalize text-muted-foreground">
-                          {new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "short" }).format(visit.date)}
+                          {new Intl.DateTimeFormat(dict.dateLocale, { day: "numeric", month: "short" }).format(visit.date)}
                           {", "}
                           {formatTime(visit.date)}
                         </span>
@@ -117,20 +114,18 @@ export default function ClientDashboardPage() {
                     ))}
                     {upcoming.length > 4 && (
                       <p className="text-xs text-muted-foreground">
-                        + jeszcze {upcoming.length - 4} {upcoming.length - 4 === 1 ? "wizyta" : "wizyty"}
+                        {d.nextVisit.andMore(upcoming.length - 4)}
                       </p>
                     )}
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-muted-foreground">
-                Nie masz zaplanowanych wizyt. Zarezerwuj swój ulubiony zabieg już teraz.
-              </p>
+              <p className="text-muted-foreground">{d.nextVisit.noVisit}</p>
             )}
             <Button asChild size="lg" className="w-full text-base font-semibold">
               <Link href="/rezerwacje">
-                {nextVisit ? "Zarządzaj wizytami" : "Zarezerwuj wizytę"}
+                {nextVisit ? d.nextVisit.manage : d.nextVisit.book}
                 <IconArrowRight size={18} />
               </Link>
             </Button>
@@ -138,16 +133,16 @@ export default function ClientDashboardPage() {
         </Card>
       </div>
 
-      {/* Promocje */}
+      {/* Promotions */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
             <IconSparkles size={22} className="text-primary" />
-            Promocje dla Ciebie
+            {d.promotions.heading}
           </h2>
           <Button asChild variant="ghost" className="text-primary hover:text-primary">
             <Link href="/promocje">
-              Wszystkie
+              {d.promotions.all}
               <IconArrowRight size={16} />
             </Link>
           </Button>
@@ -159,7 +154,7 @@ export default function ClientDashboardPage() {
             <Skeleton className="h-44 rounded-xl" />
           </div>
         ) : promotions.length === 0 ? (
-          <p className="text-muted-foreground">Aktualnie brak aktywnych promocji.</p>
+          <p className="text-muted-foreground">{d.promotions.empty}</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {promotions.map((promo) => (
@@ -178,7 +173,7 @@ export default function ClientDashboardPage() {
                 <CardContent className="flex flex-col gap-1.5 p-4 pt-0">
                   <div className="font-bold">{promo.name}</div>
                   <p className="line-clamp-2 text-sm text-muted-foreground">{promo.description}</p>
-                  <p className="text-xs text-muted-foreground">Ważna do {promo.validUntil}</p>
+                  <p className="text-xs text-muted-foreground">{d.promotions.validUntil(promo.validUntil)}</p>
                 </CardContent>
               </Card>
             ))}
@@ -186,12 +181,12 @@ export default function ClientDashboardPage() {
         )}
       </div>
 
-      {/* Historia wizyt */}
+      {/* History */}
       {history.length > 0 && (
         <div className="flex flex-col gap-4">
           <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
             <IconHistory size={22} className="text-primary" />
-            Ostatnie wizyty
+            {d.history.heading}
           </h2>
           <div className="flex flex-col gap-2">
             {history.slice(0, 5).map((visit) => (
@@ -206,7 +201,7 @@ export default function ClientDashboardPage() {
                   <Button asChild variant="outline" className="shrink-0 gap-1.5 border-primary/40 text-primary hover:text-primary">
                     <Link href={`/rezerwacje?zabieg=${encodeURIComponent(visit.treatment)}`}>
                       <IconRepeat size={16} />
-                      Zarezerwuj ponownie
+                      {d.history.bookAgain}
                     </Link>
                   </Button>
                 </CardContent>

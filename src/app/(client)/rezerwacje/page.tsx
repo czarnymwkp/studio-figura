@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import useAuthState from "@/lib/hooks/useAuthState"
 import { usePricing } from "@/lib/hooks/usePricing"
 import { useClientPortal } from "@/lib/hooks/useClientPortal"
+import { useLocale } from "@/components/locale-context"
 import {
   addAppointment, cancelAppointment, subscribeDayAppointments,
   parseDuration, parsePrice, type DayAppointment,
@@ -27,10 +28,8 @@ import {
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-// Sloty co 30 minut: 8:00–17:30 (wartości w godzinach, np. 10.5 = 10:30)
 const SLOTS = Array.from({ length: 20 }, (_, i) => 8 + i * 0.5)
 const CLOSING_HOUR = 18
-const WEEKDAYS = ["pn", "wt", "śr", "cz", "pt", "so", "nd"]
 
 function slotLabel(slot: number) {
   const h = Math.floor(slot)
@@ -38,7 +37,6 @@ function slotLabel(slot: number) {
   return `${h}:${String(m).padStart(2, "0")}`
 }
 
-/** Pełna siatka miesiąca — od poniedziałku pierwszego tygodnia do niedzieli ostatniego. */
 function getMonthGrid(viewMonth: Date): Date[] {
   const first = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1)
   const start = new Date(first)
@@ -52,24 +50,26 @@ function getMonthGrid(viewMonth: Date): Date[] {
   return days
 }
 
-function monthLabel(date: Date) {
-  return new Intl.DateTimeFormat("pl-PL", { month: "long", year: "numeric" }).format(date)
-}
-
-function fullDate(date: Date) {
-  return new Intl.DateTimeFormat("pl-PL", {
-    weekday: "long", day: "numeric", month: "long",
-  }).format(date)
-}
-
-function formatTime(date: Date) {
-  return new Intl.DateTimeFormat("pl-PL", { hour: "2-digit", minute: "2-digit" }).format(date)
-}
-
 export default function RezerwacjePage() {
   const { profile } = useAuthState()
   const { pricing, loading: pricingLoading } = usePricing()
   const { upcoming } = useClientPortal()
+  const { dict } = useLocale()
+  const d = dict.client.bookings
+
+  function monthLabel(date: Date) {
+    return new Intl.DateTimeFormat(dict.dateLocale, { month: "long", year: "numeric" }).format(date)
+  }
+
+  function fullDate(date: Date) {
+    return new Intl.DateTimeFormat(dict.dateLocale, {
+      weekday: "long", day: "numeric", month: "long",
+    }).format(date)
+  }
+
+  function formatTime(date: Date) {
+    return new Intl.DateTimeFormat(dict.dateLocale, { hour: "2-digit", minute: "2-digit" }).format(date)
+  }
 
   const [viewMonth, setViewMonth] = useState(() => {
     const d = new Date()
@@ -91,7 +91,6 @@ export default function RezerwacjePage() {
   useEffect(() => subscribeEmployees(setEmployees), [])
   useEffect(() => subscribeDevices(setDevices), [])
 
-  // Wstępny wybór zabiegu z linku "Zarezerwuj ponownie" (?zabieg=...)
   const preselected = useRef(false)
   useEffect(() => {
     if (preselected.current || pricing.length === 0) return
@@ -120,7 +119,6 @@ export default function RezerwacjePage() {
 
   const duration = treatment ? parseDuration(treatment.duration) : 0
 
-  /** Czy ktoś z umiejętnością do zabiegu ma zmianę pokrywającą [slot, slot+duration]? */
   const staffAvailable = (slot: number) => {
     if (!treatment) return false
     const end = slot + duration
@@ -128,7 +126,6 @@ export default function RezerwacjePage() {
       if (!emp.skills.includes(treatment.name)) return false
       const empShifts = dayShifts.filter((s) => s.employeeId === emp.uid)
       if (empShifts.length === 0) return false
-      // zmiany są przyległe (8-13, 13-18) — sprawdzamy pokrycie całego przedziału
       let cursor = slot
       const sorted = [...empShifts].sort((a, b) => a.startHour - b.startHour)
       for (const s of sorted) {
@@ -138,10 +135,9 @@ export default function RezerwacjePage() {
     })
   }
 
-  /** Czy urządzenie ma wolną sztukę w przedziale [slot, slot+duration]? */
   const deviceAvailable = (slot: number) => {
     if (!treatment?.device) return true
-    const device = devices.find((d) => d.id === treatment.device)
+    const device = devices.find((dv) => dv.id === treatment.device)
     if (!device) return true
     if (!device.active) return false
     const end = slot + duration
@@ -188,35 +184,33 @@ export default function RezerwacjePage() {
         price: parsePrice(treatment.price),
         device: treatment.device ?? "",
       })
-      toast.success("Wizyta zarezerwowana", {
+      toast.success(d.bookBtn, {
         description: `${treatment.name} — ${fullDate(date)}, ${slotLabel(hour)}`,
       })
       setTreatment(null)
       setDay(null)
       setHour(null)
     } catch {
-      toast.error("Nie udało się zarezerwować wizyty. Spróbuj ponownie.")
+      toast.error(d.bookingFailed)
     } finally {
       setSaving(false)
     }
   }
 
-  const isToday = (d: Date) => d.toDateString() === new Date().toDateString()
+  const isToday = (date: Date) => date.toDateString() === new Date().toDateString()
 
   return (
     <div className="flex flex-col gap-8 pb-28">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Rezerwacja wizyty</h1>
-        <p className="mt-1 text-muted-foreground">
-          Wybierz zabieg, dzień i godzinę — resztą zajmiemy się my.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{d.h1}</h1>
+        <p className="mt-1 text-muted-foreground">{d.subtitle}</p>
       </div>
 
-      {/* Krok 1 — zabieg */}
+      {/* Step 1 — treatment */}
       <section className="flex flex-col gap-4">
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <span className="flex size-7 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">1</span>
-          Wybierz zabieg
+          {d.step1}
         </h2>
 
         {pricingLoading ? (
@@ -273,11 +267,11 @@ export default function RezerwacjePage() {
         )}
       </section>
 
-      {/* Krok 2 — dzień */}
+      {/* Step 2 — day */}
       <section className="flex flex-col gap-4">
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <span className="flex size-7 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">2</span>
-          Wybierz dzień
+          {d.step2}
         </h2>
         <Card className="border-border/60 p-0">
           <CardContent className="flex flex-col gap-3 p-4">
@@ -301,22 +295,22 @@ export default function RezerwacjePage() {
             </div>
 
             <div className="grid grid-cols-7 gap-1 text-center">
-              {WEEKDAYS.map((wd) => (
+              {dict.weekdays.map((wd) => (
                 <span key={wd} className="py-1 text-xs font-medium uppercase text-muted-foreground">
                   {wd}
                 </span>
               ))}
-              {monthGrid.map((d) => {
+              {monthGrid.map((date) => {
                 const today = new Date()
                 today.setHours(0, 0, 0, 0)
-                const outsideMonth = d.getMonth() !== viewMonth.getMonth()
-                const disabled = d < today || d.getDay() === 0 || outsideMonth
-                const selected = day?.toDateString() === d.toDateString()
+                const outsideMonth = date.getMonth() !== viewMonth.getMonth()
+                const disabled = date < today || date.getDay() === 0 || outsideMonth
+                const selected = day?.toDateString() === date.toDateString()
                 return (
                   <button
-                    key={d.toISOString()}
+                    key={date.toISOString()}
                     disabled={disabled}
-                    onClick={() => setDay(d)}
+                    onClick={() => setDay(date)}
                     className={cn(
                       "h-12 rounded-lg text-sm font-medium transition-colors",
                       selected
@@ -326,10 +320,10 @@ export default function RezerwacjePage() {
                             ? "text-transparent"
                             : "cursor-not-allowed text-muted-foreground/30"
                           : "hover:bg-accent",
-                      isToday(d) && !selected && "ring-1 ring-inset ring-primary text-primary"
+                      isToday(date) && !selected && "ring-1 ring-inset ring-primary text-primary"
                     )}
                   >
-                    {d.getDate()}
+                    {date.getDate()}
                   </button>
                 )
               })}
@@ -338,20 +332,19 @@ export default function RezerwacjePage() {
         </Card>
       </section>
 
-      {/* Krok 3 — godzina */}
+      {/* Step 3 — time */}
       <section className="flex flex-col gap-4">
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <span className="flex size-7 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">3</span>
-          Wybierz godzinę
+          {d.step3}
         </h2>
         {!day ? (
-          <p className="text-sm text-muted-foreground">Najpierw wybierz dzień.</p>
+          <p className="text-sm text-muted-foreground">{d.noDay}</p>
         ) : !treatment ? (
-          <p className="text-sm text-muted-foreground">Najpierw wybierz zabieg — dostępność godzin zależy od grafiku i urządzeń.</p>
+          <p className="text-sm text-muted-foreground">{d.noTreatment}</p>
         ) : !anyStaffToday ? (
           <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            W tym dniu nikt z personelu nie wykonuje zabiegu „{treatment.name}”.
-            Wybierz inny dzień.
+            {d.noStaff(treatment.name)}
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -380,12 +373,12 @@ export default function RezerwacjePage() {
         )}
       </section>
 
-      {/* Twoje rezerwacje */}
+      {/* Your bookings */}
       {upcoming.length > 0 && (
         <section className="flex flex-col gap-4">
           <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
             <IconCalendarHeart size={22} className="text-primary" />
-            Twoje rezerwacje
+            {d.yourBookings}
           </h2>
           <div className="flex flex-col gap-2">
             {upcoming.map((appt) => (
@@ -407,22 +400,21 @@ export default function RezerwacjePage() {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Odwołać wizytę?</AlertDialogTitle>
+                          <AlertDialogTitle>{d.cancelTitle}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            {appt.treatment} — {fullDate(appt.date)}, {formatTime(appt.date)}.
-                            Tej operacji nie można cofnąć.
+                            {d.cancelDescription(appt.treatment, fullDate(appt.date), formatTime(appt.date))}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Zostaw</AlertDialogCancel>
+                          <AlertDialogCancel>{d.cancelKeep}</AlertDialogCancel>
                           <AlertDialogAction
                             className="bg-destructive text-white hover:bg-destructive/90"
                             onClick={async () => {
                               await cancelAppointment(appt.id)
-                              toast.success("Wizyta odwołana")
+                              toast.success(d.cancelled)
                             }}
                           >
-                            Odwołaj wizytę
+                            {d.cancelConfirm}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -435,7 +427,7 @@ export default function RezerwacjePage() {
         </section>
       )}
 
-      {/* Pasek podsumowania */}
+      {/* Summary bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 md:px-6">
           <div className="min-w-0">
@@ -443,16 +435,14 @@ export default function RezerwacjePage() {
               <>
                 <div className="truncate font-semibold">{treatment.name}</div>
                 <div className="truncate text-sm capitalize text-muted-foreground">
-                  {day ? fullDate(day) : "wybierz dzień"}
-                  {day && (hour !== null ? `, ${slotLabel(hour)}` : ", wybierz godzinę")}
+                  {day ? fullDate(day) : d.chooseDay}
+                  {day && (hour !== null ? `, ${slotLabel(hour)}` : `, ${d.chooseTime}`)}
                   {" · "}
                   <span className="font-semibold text-primary">{treatment.price}</span>
                 </div>
               </>
             ) : (
-              <div className="text-sm text-muted-foreground">
-                Wybierz zabieg, dzień i godzinę, aby zarezerwować wizytę.
-              </div>
+              <div className="text-sm text-muted-foreground">{d.chooseFirst}</div>
             )}
           </div>
           <Button
@@ -462,7 +452,7 @@ export default function RezerwacjePage() {
             onClick={handleBook}
           >
             <IconSparkles size={18} />
-            {saving ? "Rezerwuję..." : "Zarezerwuj"}
+            {saving ? d.saving : d.bookBtn}
           </Button>
         </div>
       </div>

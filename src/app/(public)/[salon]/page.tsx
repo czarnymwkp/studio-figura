@@ -30,7 +30,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: { absolute: `Studio Figura ${city} — modelowanie sylwetki, kosmetologia i wellness` },
       description: `Studio Figura ${city} — ${citySalons.length} salony modelowania sylwetki dla kobiet: ${citySalons.map((s) => s.address).join(" oraz ")}. Kriolipoliza, HIFU 4D, depilacja laserowa. Zadzwoń i umów bezpłatną konsultację.`,
-      alternates: { canonical: `/${slug}` },
+      alternates: {
+        canonical: `/${slug}`,
+        languages: { pl: `/${slug}`, en: `/en/${slug}`, uk: `/uk/${slug}`, "x-default": `/${slug}` },
+      },
     }
   }
   const salon = getSalon(slug)
@@ -38,7 +41,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: { absolute: `${salon.name} — modelowanie sylwetki, kosmetologia i wellness` },
     description: `${salon.name}, ${salon.address}, ${salon.postalCode}. Modelowanie sylwetki, kosmetologia i wellness dla kobiet. Zadzwoń: ${salon.phone} i umów bezpłatną konsultację.`,
-    alternates: { canonical: `/${slug}` },
+    alternates: {
+      canonical: `/${slug}`,
+      languages: { pl: `/${slug}`, en: `/en/${slug}`, uk: `/uk/${slug}`, "x-default": `/${slug}` },
+    },
   }
 }
 

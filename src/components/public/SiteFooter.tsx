@@ -1,8 +1,18 @@
 import Link from "next/link"
 import Image from "next/image"
 import { SALONS } from "@/lib/salons"
+import { getDictionary, type Dictionary } from "@/lib/i18n"
 
-export function SiteFooter() {
+interface Props {
+  lang?: string
+  dict?: Dictionary
+}
+
+export async function SiteFooter({ lang = "pl", dict: dictProp }: Props) {
+  const dict = dictProp ?? (await getDictionary(lang))
+  const prefix = lang === "pl" ? "" : `/${lang}`
+  const d = dict.footer
+
   return (
     <footer className="border-t border-border/40 bg-background">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-3 md:px-6">
@@ -11,21 +21,18 @@ export function SiteFooter() {
             <Image src="/img/logo.png" alt="Studio Figura" width={36} height={36} />
             <span className="font-bold">Studio Figura</span>
           </div>
-          <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-            Modelowanie sylwetki, kosmetologia i wellness dla kobiet. Umów wizytę w salonie
-            najbliżej Ciebie.
-          </p>
+          <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">{d.tagline}</p>
         </div>
 
         <div className="flex flex-col gap-3">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Nasze salony
+            {d.ourSalons}
           </h3>
           <ul className="flex flex-col gap-2">
             {SALONS.map((salon) => (
               <li key={salon.slug}>
                 <Link
-                  href={`/${salon.slug}`}
+                  href={`${prefix}/${salon.slug}`}
                   className="text-sm text-foreground/80 transition-colors hover:text-primary"
                 >
                   {salon.name}
@@ -37,24 +44,24 @@ export function SiteFooter() {
 
         <div className="flex flex-col gap-3">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Dla klientek
+            {d.forClients}
           </h3>
           <ul className="flex flex-col gap-2 text-sm">
             <li>
-              <Link href="/login" className="text-foreground/80 transition-colors hover:text-primary">
-                Logowanie do panelu klienta
+              <Link href={`${prefix}/login`} className="text-foreground/80 transition-colors hover:text-primary">
+                {d.loginLink}
               </Link>
             </li>
             <li>
-              <Link href="/#faq" className="text-foreground/80 transition-colors hover:text-primary">
-                Najczęstsze pytania
+              <Link href={`${prefix}/#faq`} className="text-foreground/80 transition-colors hover:text-primary">
+                {d.faqLink}
               </Link>
             </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-border/40 py-4 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Studio Figura. Wszystkie prawa zastrzeżone.
+        © {new Date().getFullYear()} Studio Figura. {d.copyright}.
       </div>
     </footer>
   )

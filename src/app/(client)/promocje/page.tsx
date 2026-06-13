@@ -5,6 +5,7 @@ import Image from "next/image"
 import { IconArrowRight, IconCalendarDue, IconSparkles } from "@tabler/icons-react"
 
 import { useClientPortal } from "@/lib/hooks/useClientPortal"
+import { useLocale } from "@/components/locale-context"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,14 +13,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function PromocjePage() {
   const { promotions, loading } = useClientPortal()
+  const { dict } = useLocale()
+  const d = dict.client.promotions
 
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Promocje</h1>
-        <p className="mt-1 text-muted-foreground">
-          Aktualne oferty specjalne — skorzystaj, zanim wygasną.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{d.h1}</h1>
+        <p className="mt-1 text-muted-foreground">{d.subtitle}</p>
       </div>
 
       {loading ? (
@@ -30,10 +31,8 @@ export default function PromocjePage() {
       ) : promotions.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border p-12 text-center">
           <IconSparkles size={32} className="text-muted-foreground" />
-          <p className="font-semibold">Aktualnie brak promocji</p>
-          <p className="text-sm text-muted-foreground">
-            Zaglądaj tu regularnie — nowe oferty pojawiają się często.
-          </p>
+          <p className="font-semibold">{d.empty.heading}</p>
+          <p className="text-sm text-muted-foreground">{d.empty.text}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-5">
@@ -62,11 +61,11 @@ export default function PromocjePage() {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <IconCalendarDue size={16} className="text-primary" />
-                      Ważna do {promo.validUntil}
+                      {d.validUntil(promo.validUntil)}
                     </span>
                     <Button asChild size="lg" className="text-base font-semibold px-6">
                       <Link href="/rezerwacje">
-                        Zarezerwuj wizytę
+                        {d.bookVisit}
                         <IconArrowRight size={18} />
                       </Link>
                     </Button>

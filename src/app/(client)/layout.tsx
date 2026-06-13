@@ -23,39 +23,39 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { LocaleProvider, useLocale } from "@/components/locale-context"
+import { ClientLanguageSwitcher } from "@/components/ClientLanguageSwitcher"
 
 const ALLOWED_ROLES: UserRole[] = ["client"]
 
-const navLinks = [
-  { href: "/dashboard", label: "Start", icon: IconHome },
-  { href: "/rezerwacje", label: "Rezerwacje", icon: IconCalendarHeart },
-  { href: "/promocje", label: "Promocje", icon: IconSparkles },
-]
-
-export default function ClientLayout({ children }: { children: React.ReactNode }) {
+function ClientLayoutInner({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useRequireAuth(ALLOWED_ROLES)
+  const { dict } = useLocale()
   const pathname = usePathname()
   const router = useRouter()
+
+  const navLinks = [
+    { href: "/dashboard", label: dict.client.nav.home, icon: IconHome },
+    { href: "/rezerwacje", label: dict.client.nav.bookings, icon: IconCalendarHeart },
+    { href: "/promocje", label: dict.client.nav.promotions, icon: IconSparkles },
+  ]
 
   useEffect(() => {
     if (!profile) return
     claimDailyLoginBonus(profile.uid).then(({ awarded, streak }) => {
       if (awarded) {
-        toast.success(`Brawo! ${LOGIN_STREAK_TARGET} dni logowania z rzędu — zdobywasz +1 punkt lojalnościowy`)
+        toast.success(dict.client.streak.awarded(LOGIN_STREAK_TARGET))
         return
       }
-      // streak 0 = dzień tuż po zdobyciu punktu (seria wystartuje jutro)
       if (streak < 1) return
       const left = LOGIN_STREAK_TARGET - streak
       toast.info(
         streak === 1
-          ? `Seria logowań rozpoczęta! Loguj się codziennie — po ${LOGIN_STREAK_TARGET} dniach z rzędu zdobędziesz punkt lojalnościowy`
-          : `Brawo, logujesz się już ${streak}. dzień z rzędu! ${left === 1
-              ? "Jeszcze tylko 1 dzień do punktu lojalnościowego"
-              : `Jeszcze ${left} dni do punktu lojalnościowego`}`
+          ? dict.client.streak.started(LOGIN_STREAK_TARGET)
+          : dict.client.streak.progress(streak, left)
       )
     })
-  }, [profile])
+  }, [profile, dict])
 
   if (loading || !profile) return null
 
@@ -94,40 +94,41 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           </nav>
 
           <div className="flex items-center gap-1.5">
-          <ThemeToggle />
-          <DropdownMenu>
-            <DropdownMenuTrigger className="rounded-full outline-none ring-primary/50 focus-visible:ring-2">
-              <Avatar className="size-10 border-2 border-primary/40">
-                <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-xl">
-              <DropdownMenuLabel>
-                <div className="flex flex-col">
-                  <span className="font-semibold">{profile.displayName}</span>
-                  <span className="text-xs font-normal text-muted-foreground">{profile.email}</span>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push("/profil")}>
-                <IconUser size={18} />
-                Mój profil
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={async () => {
-                  await logout()
-                  router.push("/login")
-                }}
-              >
-                <IconLogout size={18} />
-                Wyloguj
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <ClientLanguageSwitcher />
+            <ThemeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger className="rounded-full outline-none ring-primary/50 focus-visible:ring-2">
+                <Avatar className="size-10 border-2 border-primary/40">
+                  <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col">
+                    <span className="font-semibold">{profile.displayName}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{profile.email}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/profil")}>
+                  <IconUser size={18} />
+                  {dict.client.dropdown.myProfile}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={async () => {
+                    await logout()
+                    router.push("/login")
+                  }}
+                >
+                  <IconLogout size={18} />
+                  {dict.client.dropdown.logout}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
@@ -135,5 +136,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <main className="mx-auto w-full max-w-5xl px-4 py-6 md:px-6 md:py-8">{children}</main>
       <Toaster position="top-center" />
     </div>
+  )
+}
+
+export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <LocaleProvider>
+      <ClientLayoutInner>{children}</ClientLayoutInner>
+    </LocaleProvider>
   )
 }

@@ -8,10 +8,16 @@ import { SiteFooter } from "@/components/public/SiteFooter"
 import { NearestSalonBanner } from "@/components/public/NearestSalonBanner"
 import { SalonFinder } from "@/components/public/SalonFinder"
 import { TREATMENTS } from "@/lib/treatments"
+import { pl } from "@/dictionaries/pl"
+
+const dict = pl
 
 export const metadata: Metadata = {
   title: { absolute: "Studio Figura — modelowanie sylwetki, kosmetologia i wellness" },
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    languages: { pl: "/", en: "/en", uk: "/uk", "x-default": "/" },
+  },
   description:
     "Studio Figura to salony modelowania sylwetki dla kobiet: kriolipoliza, HIFU 4D, depilacja laserowa, endomasaż, limfodrenaż i wiele więcej. Umów wizytę online.",
 }

@@ -7,12 +7,25 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SALONS } from "@/lib/salons"
 
-/** porównanie bez wielkości liter i polskich znaków, np. "krasnik" znajdzie "Kraśnik" */
 function normalize(s: string) {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ł/g, "l")
 }
 
-export function SalonFinder() {
+interface Props {
+  placeholder?: string
+  notFoundText?: string
+  callLabel?: string
+  viewOfferLabel?: string
+  salonPrefix?: string
+}
+
+export function SalonFinder({
+  placeholder = "Wpisz miasto, np. Kraśnik...",
+  notFoundText = "Nie znaleźliśmy salonu w tej miejscowości. Sieć Studio Figura cały czas rośnie — sprawdź ponownie wkrótce.",
+  callLabel = "Zadzwoń i umów wizytę",
+  viewOfferLabel = "Sprawdź, co mamy w ofercie",
+  salonPrefix = "",
+}: Props) {
   const [query, setQuery] = useState("")
 
   const q = normalize(query.trim())
@@ -31,16 +44,13 @@ export function SalonFinder() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Wpisz miasto, np. Kraśnik..."
+          placeholder={placeholder}
           className="h-11 rounded-full pl-10"
         />
       </div>
 
       {results.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Nie znaleźliśmy salonu w tej miejscowości. Sieć Studio Figura cały czas rośnie —
-          sprawdź ponownie wkrótce.
-        </p>
+        <p className="text-sm text-muted-foreground">{notFoundText}</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {results.map((salon) => (
@@ -72,11 +82,11 @@ export function SalonFinder() {
               </ul>
               <div className="mt-auto flex flex-wrap gap-3">
                 <Button asChild size="sm">
-                  <a href={`tel:${salon.phone.replace(/\s/g, "")}`}>Zadzwoń i umów wizytę</a>
+                  <a href={`tel:${salon.phone.replace(/\s/g, "")}`}>{callLabel}</a>
                 </Button>
                 <Button asChild variant="outline" size="sm" className="gap-1.5">
-                  <Link href={`/${salon.slug}`}>
-                    Sprawdź, co mamy w ofercie
+                  <Link href={`${salonPrefix}/${salon.slug}`}>
+                    {viewOfferLabel}
                     <IconArrowRight size={16} />
                   </Link>
                 </Button>
