@@ -43,7 +43,7 @@ export function DeviceCard({ name, description, image, active, count, onToggleAc
               className={cn(
                 "cursor-pointer text-xs font-semibold select-none",
                 active
-                  ? "bg-green-600/20 text-green-400 border-green-600/30 hover:bg-green-600/30"
+                  ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
                   : "bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30"
               )}
               variant="outline"
