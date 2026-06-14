@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -13,6 +13,9 @@ const PAGE_TITLES: Record<string, string> = {
   "/admin/grafik": "Grafik",
   "/admin/urzadzenia": "Urządzenia",
   "/admin/promocje": "Promocje",
+  "/admin/multimedia": "Multimedia",
+  "/admin/tutoriale": "Tutoriale",
+  "/admin/dokumenty": "Dokumenty",
   "/admin/cennik": "Cennik",
   "/admin/automatyzacja": "Automatyzacja",
   "/admin/konto": "Moje konto",
@@ -22,7 +25,10 @@ const PAGE_TITLES: Record<string, string> = {
 
 export function SiteHeader() {
   const pathname = usePathname()
-  const title = PAGE_TITLES[pathname] ?? "Panel administracyjny"
+  const searchParams = useSearchParams()
+  const baseTitle = PAGE_TITLES[pathname] ?? "Panel administracyjny"
+  const kat = searchParams.get("kat")
+  const title = kat ?? baseTitle
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
