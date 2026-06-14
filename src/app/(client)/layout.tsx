@@ -98,7 +98,7 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden items-center gap-1 md:flex">
+          <nav className="max-md:hidden flex items-center gap-1">
             {navLinks.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
@@ -120,7 +120,7 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
             <ClientLanguageSwitcher />
             <ThemeToggle />
             <DropdownMenu>
-              <DropdownMenuTrigger className="hidden rounded-full outline-none ring-primary/50 focus-visible:ring-2 md:block">
+              <DropdownMenuTrigger className="max-md:hidden rounded-full outline-none ring-primary/50 focus-visible:ring-2">
                 <Avatar className="size-10 border-2 border-primary/40">
                   <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
                     {initials}
