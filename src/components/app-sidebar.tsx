@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Image from "next/image"
+import { useStudio } from "@/lib/hooks/useStudio"
 import { NavMain } from "@/components/nav-main"
 import { NavDocuments } from "@/components/nav-documents"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -119,6 +120,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const studio = useStudio()
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -130,7 +133,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <Image src="/img/logo.png" alt="Studio Figura" width={48} height={48} className="shrink-0" />
-                <span className="text-base font-semibold">Studio Figura</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-base font-semibold leading-tight truncate">{studio.name || "Studio Figura"}</span>
+                  {studio.address && (
+                    <span className="text-xs text-muted-foreground leading-tight truncate">{studio.address}</span>
+                  )}
+                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "studiofigura.rzeszow.pl",
       },
+      {
+        protocol: "https",
+        hostname: "www.studiofigurakrasnik.com.pl",
+      },
     ],
   },
 };

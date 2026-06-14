@@ -135,6 +135,11 @@ async function saveSetting<T extends object>(id: string, data: T): Promise<void>
 
 export const loadStudio = () => loadSetting("studio", DEFAULT_STUDIO)
 export const saveStudio = (data: StudioSettings) => saveSetting("studio", data)
+export function subscribeStudio(callback: (s: StudioSettings) => void) {
+  return onSnapshot(doc(db, "settings", "studio"), (snap) => {
+    callback(snap.exists() ? { ...DEFAULT_STUDIO, ...snap.data() } as StudioSettings : DEFAULT_STUDIO)
+  })
+}
 
 export const loadIntegrations = () => loadSetting("integrations", DEFAULT_INTEGRATIONS)
 export const saveIntegration = <K extends keyof IntegrationsSettings>(
