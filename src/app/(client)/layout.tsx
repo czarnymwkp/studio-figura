@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
@@ -37,6 +37,8 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
   const { dict } = useLocale()
   const pathname = usePathname()
   const router = useRouter()
+
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const navLinks = [
     { href: "/dashboard", label: dict.client.nav.home, icon: IconHome },
@@ -154,7 +156,7 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
             </DropdownMenu>
 
             {/* Mobile hamburger */}
-            <Sheet>
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
                   <IconMenu2 size={22} />
@@ -180,6 +182,7 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
                       <Link
                         key={href}
                         href={href}
+                        onClick={() => setMobileOpen(false)}
                         className={cn(
                           "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
                           pathname === href
@@ -193,6 +196,7 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
                     ))}
                     <Link
                       href="/profil"
+                      onClick={() => setMobileOpen(false)}
                       className={cn(
                         "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
                         pathname === "/profil"
