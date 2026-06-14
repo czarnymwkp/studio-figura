@@ -4,7 +4,7 @@ import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch, IconMinus, IconMessage, IconDownload, IconUpload } from "@tabler/icons-react"
+import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch, IconMinus, IconMessage, IconDownload, IconUpload, IconShieldCheck, IconShieldOff } from "@tabler/icons-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Table,
@@ -31,7 +31,7 @@ import {
 
 // --- CSV export ---
 function exportCSV(clients: Client[]) {
-  const headers = ["Imię", "Nazwisko", "Email", "Telefon", "Karnet", "Wejść w karnecie", "Wejść użytych", "Ostatnia wizyta", "Następna wizyta"]
+  const headers = ["Imię", "Nazwisko", "Email", "Telefon", "Karnet", "Wejść w karnecie", "Wejść użytych", "Ostatnia wizyta", "Następna wizyta", "Zgoda SMS", "Data zgody SMS"]
   const rows = clients.map((c) => [
     c.name, c.surname, c.email, c.phone,
     c.subscription ? "TAK" : "NIE",
@@ -39,6 +39,8 @@ function exportCSV(clients: Client[]) {
     c.subscriptionUsed ?? "",
     c.lastVisit ?? "",
     c.nextVisit ?? "",
+    c.smsConsent ? "TAK" : "NIE",
+    c.smsConsentDate ?? "",
   ])
   const csv = [headers, ...rows]
     .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
@@ -81,6 +83,8 @@ const COL_MAP: Record<string, keyof Omit<Client, "id">> = {
   "email": "email", "e-mail": "email",
   "telefon": "phone", "phone": "phone", "tel": "phone",
   "karnet": "subscription", "subscription": "subscription",
+  "zgoda sms": "smsConsent", "smsconsent": "smsConsent",
+  "data zgody sms": "smsConsentDate", "smsconsentdate": "smsConsentDate",
   "wejść w karnecie": "subscriptionTotal", "wejsc w karnecie": "subscriptionTotal", "subscriptiontotal": "subscriptionTotal",
   "wejść użytych": "subscriptionUsed", "wejsc uzytych": "subscriptionUsed", "subscriptionused": "subscriptionUsed",
   "ostatnia wizyta": "lastVisit", "lastvisit": "lastVisit",
@@ -108,6 +112,8 @@ function parseImport(text: string): Omit<Client, "id">[] {
     const subscription = subRaw === "TAK" || subRaw === "TRUE" || subRaw === "1"
     const total = parseInt(get(row, "subscriptionTotal"))
     const used = parseInt(get(row, "subscriptionUsed"))
+    const smsRaw = get(row, "smsConsent").toUpperCase()
+    const smsConsent = smsRaw === "TAK" || smsRaw === "TRUE" || smsRaw === "1"
     return [{
       name,
       surname,
@@ -118,6 +124,8 @@ function parseImport(text: string): Omit<Client, "id">[] {
       subscriptionUsed: isNaN(used) ? null : used,
       lastVisit: get(row, "lastVisit") || null,
       nextVisit: get(row, "nextVisit") || null,
+      smsConsent,
+      smsConsentDate: get(row, "smsConsentDate") || null,
     }]
   })
 }
@@ -247,20 +255,21 @@ export default function KlienciPage() {
               <TableHead className="font-semibold text-foreground text-center">Karnet</TableHead>
               <TableHead className="font-semibold text-foreground">Ostatnia wizyta</TableHead>
               <TableHead className="font-semibold text-foreground">Następna wizyta</TableHead>
+              <TableHead className="w-8 text-center" title="Zgoda SMS (RODO)" />
               <TableHead className="w-40" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading && (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
+                <TableCell colSpan={11} className="text-center text-muted-foreground py-10">
                   Ładowanie...
                 </TableCell>
               </TableRow>
             )}
             {!loading && filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
+                <TableCell colSpan={11} className="text-center text-muted-foreground py-10">
                   Brak klientów
                 </TableCell>
               </TableRow>
@@ -303,6 +312,12 @@ export default function KlienciPage() {
                 </TableCell>
                 <TableCell>{formatDate(client.lastVisit)}</TableCell>
                 <TableCell>{formatDate(client.nextVisit)}</TableCell>
+                <TableCell className="text-center">
+                  {client.smsConsent
+                    ? <IconShieldCheck size={16} className="text-green-500 mx-auto" title={`Zgoda SMS: ${client.smsConsentDate ?? "brak daty"}`} />
+                    : <IconShieldOff size={16} className="text-muted-foreground/40 mx-auto" title="Brak zgody na SMS" />
+                  }
+                </TableCell>
                 <TableCell>
                   <div className="flex gap-1 justify-end">
                     {client.subscription && client.subscriptionTotal != null && (
@@ -333,8 +348,9 @@ export default function KlienciPage() {
                     )}
                     <Button
                       size="icon" variant="ghost"
-                      className="size-8 text-primary hover:text-primary hover:bg-primary/10"
-                      title="Wyślij SMS"
+                      className="size-8 text-primary hover:text-primary hover:bg-primary/10 disabled:opacity-30"
+                      title={client.smsConsent ? "Wyślij SMS" : "Brak zgody na SMS (RODO)"}
+                      disabled={!client.smsConsent}
                       onClick={() => setSmsClient(client)}
                     >
                       <IconMessage size={15} />

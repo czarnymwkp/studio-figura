@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import {
   IconUser, IconMail, IconPhone, IconCalendar,
-  IconUserPlus, IconDeviceFloppy, IconLock, IconTicket,
+  IconUserPlus, IconDeviceFloppy, IconLock, IconTicket, IconShield,
 } from "@tabler/icons-react"
 import { updateClient, type Client } from "@/lib/firebase/clients"
 import { auth } from "@/lib/firebase/config"
@@ -28,6 +28,8 @@ const EMPTY = {
   subscriptionUsed: null as number | null,
   lastVisit: null as string | null, nextVisit: null as string | null,
   password: "",
+  smsConsent: false,
+  smsConsentDate: null as string | null,
 }
 
 function FieldRow({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
@@ -52,7 +54,7 @@ export function ClientDialog({ open, onClose, client }: Props) {
     if (!open) return
     setError("")
     setForm(client
-      ? { name: client.name, surname: client.surname, email: client.email, phone: client.phone, subscription: client.subscription, subscriptionTotal: client.subscriptionTotal, subscriptionUsed: client.subscriptionUsed, lastVisit: client.lastVisit, nextVisit: client.nextVisit, password: "" }
+      ? { name: client.name, surname: client.surname, email: client.email, phone: client.phone, subscription: client.subscription, subscriptionTotal: client.subscriptionTotal, subscriptionUsed: client.subscriptionUsed, lastVisit: client.lastVisit, nextVisit: client.nextVisit, password: "", smsConsent: client.smsConsent, smsConsentDate: client.smsConsentDate }
       : EMPTY
     )
   }, [client, open])
@@ -77,6 +79,7 @@ export function ClientDialog({ open, onClose, client }: Props) {
           subscriptionTotal: form.subscription ? (form.subscriptionTotal ?? null) : null,
           subscriptionUsed: form.subscription ? (form.subscriptionUsed ?? 0) : null,
           lastVisit: form.lastVisit, nextVisit: form.nextVisit,
+          smsConsent: form.smsConsent, smsConsentDate: form.smsConsentDate,
         })
       } else {
         const token = await auth.currentUser?.getIdToken(true)
@@ -191,6 +194,30 @@ export function ClientDialog({ open, onClose, client }: Props) {
               )}
             </div>
           )}
+
+          {/* RODO */}
+          <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 px-4 py-4">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
+              <IconShield size={14} /> RODO / Zgody
+            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Zgoda na SMS marketingowe</p>
+                <p className="text-xs text-muted-foreground">
+                  {form.smsConsent && form.smsConsentDate
+                    ? `Wyrażona: ${new Date(form.smsConsentDate).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric" })}`
+                    : "Brak zgody — nie można wysyłać SMS promocyjnych"}
+                </p>
+              </div>
+              <Switch
+                checked={form.smsConsent}
+                onCheckedChange={(v) => {
+                  set("smsConsent", v)
+                  set("smsConsentDate", v ? new Date().toISOString().split("T")[0] : null)
+                }}
+              />
+            </div>
+          </div>
 
           {error && <p className="text-sm text-destructive font-medium text-center">{error}</p>}
         </div>

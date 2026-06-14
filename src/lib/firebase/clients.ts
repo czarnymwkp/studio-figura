@@ -23,6 +23,8 @@ export interface Client {
   subscriptionUsed: number | null
   lastVisit: string | null
   nextVisit: string | null
+  smsConsent: boolean
+  smsConsentDate: string | null
 }
 
 interface ClientData {
@@ -36,6 +38,8 @@ interface ClientData {
   lastVisit: Timestamp | null
   nextVisit: Timestamp | null
   createdAt: Timestamp
+  smsConsent?: boolean
+  smsConsentDate?: string | null
 }
 
 function fromFirestore(id: string, data: ClientData): Client {
@@ -50,6 +54,8 @@ function fromFirestore(id: string, data: ClientData): Client {
     subscriptionUsed: data.subscriptionUsed ?? null,
     lastVisit: data.lastVisit ? data.lastVisit.toDate().toISOString().split("T")[0] : null,
     nextVisit: data.nextVisit ? data.nextVisit.toDate().toISOString().split("T")[0] : null,
+    smsConsent: data.smsConsent ?? false,
+    smsConsentDate: data.smsConsentDate ?? null,
   }
 }
 

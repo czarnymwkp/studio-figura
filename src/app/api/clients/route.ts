@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, surname, email, password, phone, subscription, lastVisit, nextVisit } = body
+    const { name, surname, email, password, phone, subscription, lastVisit, nextVisit, smsConsent, smsConsentDate } = body
 
     if (!name || !surname || !email || !password) {
       return NextResponse.json({ error: "Brakujące pola" }, { status: 400 })
@@ -52,6 +52,8 @@ export async function POST(request: NextRequest) {
         subscription: subscription ?? false,
         lastVisit: lastVisit ?? null,
         nextVisit: nextVisit ?? null,
+        smsConsent: smsConsent ?? false,
+        smsConsentDate: smsConsentDate ?? null,
         createdAt: FieldValue.serverTimestamp(),
         createdBy: decoded.uid,
       }),

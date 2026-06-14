@@ -43,12 +43,14 @@ export async function SiteHeader({ lang = "pl", dict: dictProp }: Props) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <LanguageSwitcher lang={lang} />
-          <ThemeToggle />
+          <div className="hidden sm:flex items-center gap-2">
+            <LanguageSwitcher lang={lang} />
+            <ThemeToggle />
+          </div>
           <Button asChild variant="outline" className="gap-2">
             <Link href={`${prefix}/login`}>
               <IconUser size={18} />
-              {dict.nav.clientPortal}
+              <span className="hidden sm:inline">{dict.nav.clientPortal}</span>
             </Link>
           </Button>
         </div>
