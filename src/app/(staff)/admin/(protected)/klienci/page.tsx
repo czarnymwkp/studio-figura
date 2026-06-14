@@ -4,7 +4,7 @@ import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch, IconMinus, IconMessage } from "@tabler/icons-react"
+import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch, IconMinus, IconMessage, IconDownload, IconUpload } from "@tabler/icons-react"
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useClients } from "@/lib/hooks/useClients"
-import { deleteClient, subtractVisit, type Client } from "@/lib/firebase/clients"
+import { addClient, deleteClient, subtractVisit, type Client } from "@/lib/firebase/clients"
 import { ClientDialog } from "@/components/admin/ClientDialog"
 import { ClientSmsDialog } from "@/components/admin/ClientSmsDialog"
 import {
@@ -27,6 +27,99 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+
+// --- CSV export ---
+function exportCSV(clients: Client[]) {
+  const headers = ["Imię", "Nazwisko", "Email", "Telefon", "Karnet", "Wejść w karnecie", "Wejść użytych", "Ostatnia wizyta", "Następna wizyta"]
+  const rows = clients.map((c) => [
+    c.name, c.surname, c.email, c.phone,
+    c.subscription ? "TAK" : "NIE",
+    c.subscriptionTotal ?? "",
+    c.subscriptionUsed ?? "",
+    c.lastVisit ?? "",
+    c.nextVisit ?? "",
+  ])
+  const csv = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\n")
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = `klienci_${new Date().toISOString().split("T")[0]}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// --- CSV import ---
+function parseCSVRows(text: string): string[][] {
+  return text.trim().split(/\r?\n/).map((line) => {
+    const cells: string[] = []
+    let cur = ""
+    let inQ = false
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i]
+      if (ch === '"') {
+        if (inQ && line[i + 1] === '"') { cur += '"'; i++ }
+        else inQ = !inQ
+      } else if (ch === "," && !inQ) {
+        cells.push(cur.trim())
+        cur = ""
+      } else {
+        cur += ch
+      }
+    }
+    cells.push(cur.trim())
+    return cells
+  })
+}
+
+const COL_MAP: Record<string, keyof Omit<Client, "id">> = {
+  "imię": "name", "imie": "name", "name": "name",
+  "nazwisko": "surname", "surname": "surname",
+  "email": "email", "e-mail": "email",
+  "telefon": "phone", "phone": "phone", "tel": "phone",
+  "karnet": "subscription", "subscription": "subscription",
+  "wejść w karnecie": "subscriptionTotal", "wejsc w karnecie": "subscriptionTotal", "subscriptiontotal": "subscriptionTotal",
+  "wejść użytych": "subscriptionUsed", "wejsc uzytych": "subscriptionUsed", "subscriptionused": "subscriptionUsed",
+  "ostatnia wizyta": "lastVisit", "lastvisit": "lastVisit",
+  "następna wizyta": "nextVisit", "nastepna wizyta": "nextVisit", "nextvisit": "nextVisit",
+}
+
+function parseImport(text: string): Omit<Client, "id">[] {
+  const rows = parseCSVRows(text)
+  if (rows.length < 2) return []
+  const headerRow = rows[0].map((h) => h.toLowerCase().replace(/["﻿]/g, "").trim())
+  const colIdx: Partial<Record<keyof Omit<Client, "id">, number>> = {}
+  headerRow.forEach((h, i) => {
+    const field = COL_MAP[h]
+    if (field) colIdx[field] = i
+  })
+  const get = (row: string[], field: keyof Omit<Client, "id">) => {
+    const i = colIdx[field]
+    return i !== undefined ? row[i]?.trim() ?? "" : ""
+  }
+  return rows.slice(1).flatMap((row) => {
+    const name = get(row, "name")
+    const surname = get(row, "surname")
+    if (!name && !surname) return []
+    const subRaw = get(row, "subscription").toUpperCase()
+    const subscription = subRaw === "TAK" || subRaw === "TRUE" || subRaw === "1"
+    const total = parseInt(get(row, "subscriptionTotal"))
+    const used = parseInt(get(row, "subscriptionUsed"))
+    return [{
+      name,
+      surname,
+      email: get(row, "email"),
+      phone: get(row, "phone"),
+      subscription,
+      subscriptionTotal: isNaN(total) ? null : total,
+      subscriptionUsed: isNaN(used) ? null : used,
+      lastVisit: get(row, "lastVisit") || null,
+      nextVisit: get(row, "nextVisit") || null,
+    }]
+  })
+}
 
 function formatDate(date: string | null) {
   if (!date) return <span className="text-muted-foreground">—</span>
@@ -42,7 +135,33 @@ export default function KlienciPage() {
   const [deleteName, setDeleteName] = useState("")
   const [subtractConfirm, setSubtractConfirm] = useState<string | null>(null)
   const [smsClient, setSmsClient] = useState<Client | null>(null)
+  const [importData, setImportData] = useState<Omit<Client, "id">[] | null>(null)
+  const [importing, setImporting] = useState(false)
   const dragIndex = useRef<number | null>(null)
+  const csvImportRef = useRef<HTMLInputElement>(null)
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string
+      setImportData(parseImport(text))
+    }
+    reader.readAsText(file, "UTF-8")
+    if (csvImportRef.current) csvImportRef.current.value = ""
+  }
+
+  const handleImportConfirm = async () => {
+    if (!importData) return
+    setImporting(true)
+    try {
+      await Promise.all(importData.map((c) => addClient(c)))
+    } finally {
+      setImporting(false)
+      setImportData(null)
+    }
+  }
 
   const filtered = query.trim().length < 3
     ? clients
@@ -75,6 +194,15 @@ export default function KlienciPage() {
               className="pl-9 w-80"
             />
           </div>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => exportCSV(clients)}>
+            <IconDownload size={15} />
+            Eksportuj CSV
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => csvImportRef.current?.click()}>
+            <IconUpload size={15} />
+            Importuj CSV
+          </Button>
+          <input ref={csvImportRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleImportFile} />
           <Button size="lg" className="text-base font-semibold px-6" onClick={openAdd}>
             <IconUserPlus size={20} />
             Dodaj klienta
@@ -209,6 +337,29 @@ export default function KlienciPage() {
         client={smsClient}
         onClose={() => setSmsClient(null)}
       />
+
+      {/* Import confirm */}
+      <AlertDialog open={importData !== null} onOpenChange={(v) => !v && setImportData(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Importować klientów?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {importData?.length === 0
+                ? "Nie znaleziono żadnych prawidłowych wierszy w pliku. Sprawdź czy plik ma nagłówki: Imię, Nazwisko, Email, Telefon."
+                : <>Znaleziono <strong>{importData?.length}</strong> klientów do zaimportowania. Zostaną dodani do istniejącej listy (duplikaty nie są usuwane automatycznie).</>
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anuluj</AlertDialogCancel>
+            {(importData?.length ?? 0) > 0 && (
+              <AlertDialogAction onClick={handleImportConfirm} disabled={importing}>
+                {importing ? "Importuję..." : `Importuj ${importData?.length} klientów`}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
         <AlertDialogContent>
