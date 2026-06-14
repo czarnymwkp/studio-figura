@@ -114,10 +114,8 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-1.5">
-            <div className="hidden sm:flex items-center gap-1.5">
-              <ClientLanguageSwitcher />
-              <ThemeToggle />
-            </div>
+            <ClientLanguageSwitcher />
+            <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger className="rounded-full outline-none ring-primary/50 focus-visible:ring-2">
                 <Avatar className="size-10 border-2 border-primary/40">

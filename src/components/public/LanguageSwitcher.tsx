@@ -1,28 +1,38 @@
 "use client"
 
-import { cn } from "@/lib/utils"
+import { IconLanguage } from "@tabler/icons-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const LANGS = [
-  { code: "pl", label: "PL", href: "/" },
-  { code: "en", label: "EN", href: "/en" },
-  { code: "uk", label: "UK", href: "/uk" },
+  { code: "pl", label: "Polski",    short: "PL", href: "/" },
+  { code: "en", label: "English",   short: "EN", href: "/en" },
+  { code: "uk", label: "Українська", short: "UK", href: "/uk" },
 ]
 
 export function LanguageSwitcher({ lang }: { lang: string }) {
+  const current = LANGS.find((l) => l.code === lang) ?? LANGS[0]
+
   return (
-    <div className="flex items-center gap-0.5 text-xs font-bold">
-      {LANGS.map(({ code, label, href }, i) => (
-        <span key={code} className="flex items-center">
-          {i > 0 && <span className="mx-0.5 text-muted-foreground/40">·</span>}
-          {lang === code ? (
-            <span className="text-foreground">{label}</span>
-          ) : (
-            <a href={href} className="text-muted-foreground transition-colors hover:text-foreground">
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground outline-none">
+        <IconLanguage size={15} />
+        {current.short}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[120px] rounded-xl">
+        {LANGS.map(({ code, label, short, href }) => (
+          <DropdownMenuItem key={code} asChild>
+            <a href={href} className={code === lang ? "font-semibold text-primary" : ""}>
+              <span className="w-7 text-xs font-bold text-muted-foreground">{short}</span>
               {label}
             </a>
-          )}
-        </span>
-      ))}
-    </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

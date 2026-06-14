@@ -42,11 +42,9 @@ export async function SiteHeader({ lang = "pl", dict: dictProp }: Props) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-2">
-            <LanguageSwitcher lang={lang} />
-            <ThemeToggle />
-          </div>
+        <div className="flex items-center gap-1">
+          <LanguageSwitcher lang={lang} />
+          <ThemeToggle />
           <Button asChild variant="outline" className="gap-2">
             <Link href={`${prefix}/login`}>
               <IconUser size={18} />
