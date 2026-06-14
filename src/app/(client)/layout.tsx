@@ -160,7 +160,7 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
                   <IconMenu2 size={22} />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-72 p-0">
+              <SheetContent side="right" className="w-72 p-0" showCloseButton={false}>
                 <SheetTitle className="sr-only">Menu</SheetTitle>
                 <div className="flex h-full flex-col">
                   <div className="flex items-center gap-3 border-b border-border/40 px-5 py-4">
