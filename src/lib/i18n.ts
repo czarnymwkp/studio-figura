@@ -182,6 +182,13 @@ export type Dictionary = {
       passwordTooShort: string
       passwordMismatch: string
       wrongPassword: string
+      consents: string
+      smsConsentLabel: string
+      smsConsentText: string
+      smsConsentGranted: (date: string) => string
+      smsConsentSaved: string
+      smsConsentRevoked: string
+      smsConsentError: string
     }
   }
 }

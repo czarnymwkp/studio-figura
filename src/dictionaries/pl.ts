@@ -251,6 +251,13 @@ export const pl: Dictionary = {
       passwordTooShort: "Nowe hasło musi mieć co najmniej 6 znaków",
       passwordMismatch: "Hasła nie są takie same",
       wrongPassword: "Obecne hasło jest nieprawidłowe",
+      consents: "Zgody i komunikacja",
+      smsConsentLabel: "Zgoda na SMS marketingowe",
+      smsConsentText: "Wyrażam zgodę na otrzymywanie od Studio Figura informacji handlowych i promocyjnych drogą SMS na podany numer telefonu. Zgodę można wycofać w każdej chwili.",
+      smsConsentGranted: (date) => `Zgoda wyrażona: ${date}`,
+      smsConsentSaved: "Zgoda zapisana",
+      smsConsentRevoked: "Zgoda wycofana",
+      smsConsentError: "Nie udało się zapisać zgody",
     },
   },
 }

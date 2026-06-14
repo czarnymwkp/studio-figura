@@ -251,6 +251,13 @@ export const en: Dictionary = {
       passwordTooShort: "New password must be at least 6 characters",
       passwordMismatch: "Passwords do not match",
       wrongPassword: "Current password is incorrect",
+      consents: "Consents & communication",
+      smsConsentLabel: "Marketing SMS consent",
+      smsConsentText: "I consent to receive marketing and promotional information via SMS from Studio Figura to the phone number provided. Consent can be withdrawn at any time.",
+      smsConsentGranted: (date) => `Consent granted: ${date}`,
+      smsConsentSaved: "Consent saved",
+      smsConsentRevoked: "Consent withdrawn",
+      smsConsentError: "Failed to save consent",
     },
   },
 }

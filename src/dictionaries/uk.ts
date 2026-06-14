@@ -251,6 +251,13 @@ export const uk: Dictionary = {
       passwordTooShort: "Новий пароль має містити щонайменше 6 символів",
       passwordMismatch: "Паролі не збігаються",
       wrongPassword: "Поточний пароль невірний",
+      consents: "Згоди та комунікація",
+      smsConsentLabel: "Згода на маркетингові SMS",
+      smsConsentText: "Я даю згоду на отримання від Studio Figura маркетингової та рекламної інформації через SMS на вказаний номер телефону. Згоду можна відкликати будь-коли.",
+      smsConsentGranted: (date) => `Згоду надано: ${date}`,
+      smsConsentSaved: "Згоду збережено",
+      smsConsentRevoked: "Згоду відкликано",
+      smsConsentError: "Не вдалося зберегти згоду",
     },
   },
 }

@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { IconCalendarHeart, IconHome, IconSparkles, IconLogout, IconUser, IconWorldOff } from "@tabler/icons-react"
+import { IconCalendarHeart, IconHome, IconSparkles, IconLogout, IconUser, IconWorldOff, IconMenu2 } from "@tabler/icons-react"
 import { toast } from "sonner"
 
 import useRequireAuth from "@/lib/hooks/useRequireAuth"
@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LocaleProvider, useLocale } from "@/components/locale-context"
 import { ClientLanguageSwitcher } from "@/components/ClientLanguageSwitcher"
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
 
 const ALLOWED_ROLES: UserRole[] = ["client"]
 
@@ -95,7 +97,8 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
             <span className="hidden text-lg font-bold tracking-tight sm:block">Studio Figura</span>
           </Link>
 
-          <nav className="flex items-center gap-1">
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-1 md:flex">
             {navLinks.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
@@ -108,7 +111,7 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <Icon size={18} />
-                <span className="hidden md:block">{label}</span>
+                {label}
               </Link>
             ))}
           </nav>
@@ -117,7 +120,7 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
             <ClientLanguageSwitcher />
             <ThemeToggle />
             <DropdownMenu>
-              <DropdownMenuTrigger className="rounded-full outline-none ring-primary/50 focus-visible:ring-2">
+              <DropdownMenuTrigger className="hidden rounded-full outline-none ring-primary/50 focus-visible:ring-2 md:block">
                 <Avatar className="size-10 border-2 border-primary/40">
                   <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
                     {initials}
@@ -149,6 +152,71 @@ function ClientLayoutInner({ children }: { children: React.ReactNode }) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Mobile hamburger */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <IconMenu2 size={22} />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 p-0">
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <div className="flex h-full flex-col">
+                  <div className="flex items-center gap-3 border-b border-border/40 px-5 py-4">
+                    <Avatar className="size-10 border-2 border-primary/40">
+                      <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{profile.displayName}</span>
+                      <span className="text-xs text-muted-foreground">{profile.email}</span>
+                    </div>
+                  </div>
+
+                  <nav className="flex flex-col gap-1 p-4">
+                    {navLinks.map(({ href, label, icon: Icon }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        className={cn(
+                          "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+                          pathname === href
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        )}
+                      >
+                        <Icon size={20} />
+                        {label}
+                      </Link>
+                    ))}
+                    <Link
+                      href="/profil"
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+                        pathname === "/profil"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      )}
+                    >
+                      <IconUser size={20} />
+                      {dict.client.dropdown.myProfile}
+                    </Link>
+                  </nav>
+
+                  <div className="mt-auto border-t border-border/40 p-4">
+                    <button
+                      onClick={async () => { await logout(); router.push("/login") }}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+                    >
+                      <IconLogout size={20} />
+                      {dict.client.dropdown.logout}
+                    </button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>

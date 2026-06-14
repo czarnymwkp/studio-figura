@@ -119,9 +119,9 @@ export default function ProfilPage() {
       })
       setSmsConsent(value)
       setSmsConsentDate(date)
-      toast.success(value ? "Zgoda zapisana" : "Zgoda wycofana")
+      toast.success(value ? d.smsConsentSaved : d.smsConsentRevoked)
     } catch {
-      toast.error("Nie udało się zapisać zgody")
+      toast.error(d.smsConsentError)
     } finally {
       setSavingConsent(false)
     }
@@ -192,18 +192,18 @@ export default function ProfilPage() {
       <Card className="border-border/60">
         <CardHeader className="flex flex-row items-center gap-2 pb-2">
           <IconShield size={18} className="text-primary" />
-          <span className="font-semibold">Zgody i komunikacja</span>
+          <span className="font-semibold">{d.consents}</span>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 p-4">
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium">Zgoda na SMS marketingowe</p>
+              <p className="text-sm font-medium">{d.smsConsentLabel}</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Wyrażam zgodę na otrzymywanie od Studio Figura informacji handlowych i promocyjnych drogą SMS na podany numer telefonu. Zgodę można wycofać w każdej chwili.
+                {d.smsConsentText}
               </p>
               {smsConsent && smsConsentDate && (
                 <p className="mt-1 text-xs text-green-600 dark:text-green-400 font-medium">
-                  Zgoda wyrażona: {new Date(smsConsentDate).toLocaleDateString("pl-PL", { day: "2-digit", month: "long", year: "numeric" })}
+                  {d.smsConsentGranted(new Date(smsConsentDate).toLocaleDateString(dict.dateLocale, { day: "2-digit", month: "long", year: "numeric" }))}
                 </p>
               )}
             </div>
