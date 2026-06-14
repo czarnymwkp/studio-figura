@@ -63,8 +63,8 @@ export default function PromocjePage() {
           >
             {/* Zdjęcie */}
             <div className="relative w-48 shrink-0 bg-muted">
-              {promo.image ? (
-                <Image src={promo.image} alt={promo.name} fill className="object-cover" />
+              {(promo.imageWide || promo.imageSquare) ? (
+                <Image src={promo.imageWide || promo.imageSquare} alt={promo.name} fill className="object-cover" />
               ) : (
                 <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Brak zdjęcia</div>
               )}

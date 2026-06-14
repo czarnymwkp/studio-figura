@@ -19,7 +19,7 @@ import {
   IconLayoutDashboard, IconUsersGroup, IconUserCheck, IconTool,
   IconTag, IconSettings, IconHelp, IconSearch,
   IconSpeakerphone, IconCalendarTime, IconRobot,
-  IconContract, IconReport,
+  IconContract, IconReport, IconPhoto, IconSchool, IconFileDescription,
 } from "@tabler/icons-react"
 
 const data = {
@@ -53,6 +53,21 @@ const data = {
       title: "Promocje",
       url: "/admin/promocje",
       icon: <IconSpeakerphone size={22} className="text-primary" />,
+    },
+    {
+      title: "Multimedia",
+      url: "/admin/multimedia",
+      icon: <IconPhoto size={22} className="text-primary" />,
+    },
+    {
+      title: "Tutoriale",
+      url: "/admin/tutoriale",
+      icon: <IconSchool size={22} className="text-primary" />,
+    },
+    {
+      title: "Dokumenty",
+      url: "/admin/dokumenty",
+      icon: <IconFileDescription size={22} className="text-primary" />,
     },
     {
       title: "Cennik",

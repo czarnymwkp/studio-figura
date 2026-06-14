@@ -10,7 +10,8 @@ export interface Promotion {
   description: string
   discount: string
   validUntil: string
-  image: string
+  imageSquare: string
+  imageWide: string
   active: boolean
 }
 
