@@ -4,6 +4,7 @@ import { IconUser } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { LanguageSwitcher } from "@/components/public/LanguageSwitcher"
+import { MobileNav } from "@/components/public/MobileNav"
 import { getDictionary, type Dictionary } from "@/lib/i18n"
 
 interface Props {
@@ -45,12 +46,17 @@ export async function SiteHeader({ lang = "pl", dict: dictProp }: Props) {
         <div className="flex items-center gap-1">
           <LanguageSwitcher lang={lang} />
           <ThemeToggle />
-          <Button asChild variant="outline" className="gap-2">
+          <Button asChild variant="outline" className="hidden gap-2 md:inline-flex">
             <Link href={`${prefix}/login`}>
               <IconUser size={18} />
-              <span className="hidden sm:inline">{dict.nav.clientPortal}</span>
+              {dict.nav.clientPortal}
             </Link>
           </Button>
+          <MobileNav
+            links={navLinks}
+            loginHref={`${prefix}/login`}
+            loginLabel={dict.nav.clientPortal}
+          />
         </div>
       </div>
     </header>
