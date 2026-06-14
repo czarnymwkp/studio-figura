@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 import { IconUpload, IconFileTypePdf, IconX } from "@tabler/icons-react"
 import { addDocument, updateDocument, type StudioDocument } from "@/lib/firebase/documents"
 
-const PRESET_CATEGORIES = ["Obsługa maszyn", "Przeciwwskazania", "Procedury", "BHP", "Szkolenia"]
+const PRESET_CATEGORIES = ["Przeciwwskazania", "Dokumentacja urządzeń", "Procedury zabiegowe", "Karty preparatów", "BHP"]
 
 interface Props {
   open: boolean

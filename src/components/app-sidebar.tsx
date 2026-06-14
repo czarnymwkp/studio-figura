@@ -68,6 +68,12 @@ const data = {
       title: "Dokumenty",
       url: "/admin/dokumenty",
       icon: <IconFileDescription size={22} className="text-primary" />,
+      items: [
+        { title: "Przeciwwskazania", url: "/admin/dokumenty?kat=Przeciwwskazania" },
+        { title: "Dokumentacja urządzeń", url: "/admin/dokumenty?kat=Dokumentacja+urządzeń" },
+        { title: "Procedury zabiegowe", url: "/admin/dokumenty?kat=Procedury+zabiegowe" },
+        { title: "Karty preparatów", url: "/admin/dokumenty?kat=Karty+preparatów" },
+      ],
     },
     {
       title: "Cennik",

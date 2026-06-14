@@ -3,25 +3,33 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import { IconCirclePlusFilled, IconMail } from "@tabler/icons-react"
+import { IconCirclePlusFilled, IconMail, IconChevronRight } from "@tabler/icons-react"
 
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string
-    url: string
-    icon?: React.ReactNode
-    onClick?: () => void
-  }[]
-}) {
+interface SubItem {
+  title: string
+  url: string
+}
+
+interface NavItem {
+  title: string
+  url: string
+  icon?: React.ReactNode
+  onClick?: () => void
+  items?: SubItem[]
+}
+
+export function NavMain({ items }: { items: NavItem[] }) {
   const pathname = usePathname()
 
   return (
@@ -44,23 +52,71 @@ export function NavMain({
               className="size-8 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
             >
-              <IconMail
-              />
+              <IconMail />
               <span className="sr-only">Inbox</span>
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>
+
         <SidebarMenu className="gap-1">
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url} className="h-11 text-base font-medium">
-                <Link href={item.url} onClick={item.onClick}>
-                  {item.icon}
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {items.map((item) => {
+            if (item.items?.length) {
+              const isAnySubActive = item.items.some((sub) => pathname.startsWith(sub.url))
+              const isParentActive = pathname === item.url || isAnySubActive
+
+              return (
+                <Collapsible key={item.title} defaultOpen={isAnySubActive} asChild>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        tooltip={item.title}
+                        isActive={isParentActive}
+                        className="h-11 text-base font-medium group/collapsible"
+                      >
+                        {item.icon}
+                        <span>{item.title}</span>
+                        <IconChevronRight
+                          size={16}
+                          className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                        />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.items.map((sub) => (
+                          <SidebarMenuSubItem key={sub.title}>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={pathname.startsWith(sub.url)}
+                              className="text-sm"
+                            >
+                              <Link href={sub.url}>{sub.title}</Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              )
+            }
+
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  isActive={pathname === item.url}
+                  className="h-11 text-base font-medium"
+                >
+                  <Link href={item.url} onClick={item.onClick}>
+                    {item.icon}
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -20,7 +21,12 @@ export default function DokumentyPage() {
   const [editDoc, setEditDoc] = useState<StudioDocument | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteTitle, setDeleteTitle] = useState("")
-  const [activeCategory, setActiveCategory] = useState("Wszystkie")
+  const searchParams = useSearchParams()
+  const [activeCategory, setActiveCategory] = useState(() => searchParams.get("kat") ?? "Wszystkie")
+
+  useEffect(() => {
+    setActiveCategory(searchParams.get("kat") ?? "Wszystkie")
+  }, [searchParams])
 
   const categories = useMemo(() => {
     const cats = Array.from(new Set(documents.map((d) => d.category).filter(Boolean)))
