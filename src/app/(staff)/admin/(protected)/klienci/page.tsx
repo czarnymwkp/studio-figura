@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { IconUserPlus, IconTrash, IconGripVertical, IconPencil, IconSearch, IconMinus, IconMessage, IconDownload, IconUpload } from "@tabler/icons-react"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Table,
   TableBody,
@@ -137,6 +138,7 @@ export default function KlienciPage() {
   const [smsClient, setSmsClient] = useState<Client | null>(null)
   const [importData, setImportData] = useState<Omit<Client, "id">[] | null>(null)
   const [importing, setImporting] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const dragIndex = useRef<number | null>(null)
   const csvImportRef = useRef<HTMLInputElement>(null)
 
@@ -175,6 +177,23 @@ export default function KlienciPage() {
         )
       })
 
+  const allSelected = filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id))
+  const someSelected = !allSelected && filtered.some((c) => selectedIds.has(c.id))
+
+  const toggleSelectAll = () => {
+    if (allSelected) setSelectedIds(new Set())
+    else setSelectedIds(new Set(filtered.map((c) => c.id)))
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const openAdd = () => { setEditClient(null); setDialogOpen(true) }
   const openEdit = (client: Client) => { setEditClient(client); setDialogOpen(true) }
   const confirmDelete = (client: Client) => { setDeleteId(client.id); setDeleteName(`${client.name} ${client.surname}`) }
@@ -194,9 +213,9 @@ export default function KlienciPage() {
               className="pl-9 w-80"
             />
           </div>
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => exportCSV(clients)}>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => exportCSV(selectedIds.size > 0 ? clients.filter((c) => selectedIds.has(c.id)) : clients)}>
             <IconDownload size={15} />
-            Eksportuj CSV
+            {selectedIds.size > 0 ? `Eksportuj (${selectedIds.size})` : "Eksportuj CSV"}
           </Button>
           <Button size="sm" variant="outline" className="gap-1.5" onClick={() => csvImportRef.current?.click()}>
             <IconUpload size={15} />
@@ -214,6 +233,12 @@ export default function KlienciPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-primary/10 hover:bg-primary/10">
+              <TableHead className="w-8 pl-4">
+                <Checkbox
+                  checked={someSelected ? "indeterminate" : allSelected}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
               <TableHead className="w-8" />
               <TableHead className="font-semibold text-foreground">Imię</TableHead>
               <TableHead className="font-semibold text-foreground">Nazwisko</TableHead>
@@ -222,20 +247,20 @@ export default function KlienciPage() {
               <TableHead className="font-semibold text-foreground text-center">Karnet</TableHead>
               <TableHead className="font-semibold text-foreground">Ostatnia wizyta</TableHead>
               <TableHead className="font-semibold text-foreground">Następna wizyta</TableHead>
-              <TableHead className="w-10" />
+              <TableHead className="w-40" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
                   Ładowanie...
                 </TableCell>
               </TableRow>
             )}
             {!loading && filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
                   Brak klientów
                 </TableCell>
               </TableRow>
@@ -248,6 +273,12 @@ export default function KlienciPage() {
                 onDragOver={(e) => e.preventDefault()}
                 className={i % 2 === 0 ? "" : "bg-muted/30"}
               >
+                <TableCell className="pl-4">
+                  <Checkbox
+                    checked={selectedIds.has(client.id)}
+                    onCheckedChange={() => toggleSelect(client.id)}
+                  />
+                </TableCell>
                 <TableCell className="text-muted-foreground cursor-grab active:cursor-grabbing">
                   <IconGripVertical size={16} />
                 </TableCell>
@@ -273,7 +304,7 @@ export default function KlienciPage() {
                 <TableCell>{formatDate(client.lastVisit)}</TableCell>
                 <TableCell>{formatDate(client.nextVisit)}</TableCell>
                 <TableCell>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 justify-end">
                     {client.subscription && client.subscriptionTotal != null && (
                       subtractConfirm === client.id ? (
                         <Button
